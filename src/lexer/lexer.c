@@ -6,7 +6,7 @@
 static enum TokenType token_type;
 
 static const char keywords[] =
-#define DEF(macro, str) str,
+#define DEF(macro, str) str "\0"
 #include "tok.def"
 #undef DEF
 ;
