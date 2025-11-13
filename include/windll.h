@@ -1,6 +1,6 @@
 // Windows DLL
 #ifdef _WIN32
-    #ifdef BUILDING_MATH_DLL
+    #ifdef BUILDING_CORE_DLL
         // build DLL
         #define CORE_API __declspec(dllexport)
     #else
@@ -9,6 +9,6 @@
     #endif
 #else
     // Linux or others
-    #define MATH_API
+    #define CORE_API
 #endif
 

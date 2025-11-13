@@ -28,8 +28,8 @@ enum TokenType {
 #undef DEF
 };
 
-typedef struct {
-    TokenType type;
+typedef struct Token {
+    enum TokenType type;
     char lexeme[MAX_LEN_LEXME];           
 } Token;
 

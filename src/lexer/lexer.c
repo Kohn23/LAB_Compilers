@@ -9,7 +9,7 @@ static const char keywords[] =
 #undef DEF
 ;
 
-Lexer* lexer_init(const char *input_filename, const char *output_dir) {
+CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir) {
     Lexer *lexer = (Lexer*)malloc(sizeof(Lexer));
     if (!lexer) return NULL;
 
@@ -43,7 +43,7 @@ Lexer* lexer_init(const char *input_filename, const char *output_dir) {
     return lexer;
 }
 
-void lexer_destroy(Lexer *lexer) {
+CORE_API void lexer_destroy(Lexer *lexer) {
     if (lexer->input_file) fclose(lexer->input_file);
     if (lexer->dyd_file) fclose(lexer->dyd_file);
     if (lexer->err_file) fclose(lexer->err_file);
@@ -67,7 +67,7 @@ static void write_eof(Lexer *lexer){
     fprintf(lexer->dyd_file, "EOF\n");
 }
 
-void lexical_analyze(Lexer* lexer) {
+CORE_API void lexical_analyze(Lexer* lexer) {
     int ch;
     while ((ch = fgetc(lexer->input_file)) != EOF) {
         lexer->current_char++;
@@ -178,7 +178,7 @@ void lexical_analyze(Lexer* lexer) {
             continue;
         }
 
-        if (ch == ":")
+        if (ch == ':')
         {
             Token token;
             int next_ch = fgetc(lexer->input_file);
@@ -236,10 +236,10 @@ void lexical_analyze(Lexer* lexer) {
             token.lexeme[len] = '\0';
             // check if keyword
             const char *kw_ptr = keywords;
-            TokenType found_type = TOK_IDENTIFIER;
+            enum TokenType found_type = TOK_IDENTIFIER;
             while (*kw_ptr) {
                 if (strcmp(token.lexeme, kw_ptr) == 0) {
-                    found_type = (TokenType)(TOK_NULL + (kw_ptr - keywords) / (MAX_LEN_LEXME + 1) + 1);
+                    found_type = (enum TokenType)(TOK_NULL + (kw_ptr - keywords) / (MAX_LEN_LEXME + 1) + 1);
                     break;
                 }
                 kw_ptr += strlen(kw_ptr) + 1;

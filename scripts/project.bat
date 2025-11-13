@@ -61,7 +61,7 @@ if "%ACTION%"=="build_lib" (
 :build_lib
     echo === Compile DLL ===
     cd %BUILD_DIR%
-    mingw32-make
+    cmake --build .
     cd ..
     echo complete
     exit /b 0
@@ -77,7 +77,7 @@ if "%ACTION%"=="build_test" (
     )
 
     cd test
-    g++ main.cpp -L../%BUILD_DIR% -lMyLib -o ../%BUILD_DIR%/%TEST_EXE%
+    gcc main.cpp -L../%BUILD_DIR% -lMyLib -o ../%BUILD_DIR%/%TEST_EXE%
     cd ..
     echo complete: %BUILD_DIR%\%TEST_EXE%
     exit /b 0
