@@ -5,7 +5,8 @@ setlocal enabledelayedexpansion
 
 set ACTION=%~1
 set BUILD_DIR=build
-set DLL_NAME=MyLib.dll
+set BUILD_SUB_DIR=src
+set DLL_NAME=libminicomp.dll
 set TEST_EXE=test.exe
 
 
@@ -51,7 +52,8 @@ if "%ACTION%"=="config" (
     echo === Config Cmake ===
     if not exist %BUILD_DIR% mkdir %BUILD_DIR%
     cd %BUILD_DIR%
-    cmake ..
+    cmake .. -G "MinGW Makefiles" -DCMAKE_TOOLCHAIN_FILE="cmake/mingw-toolchain.cmake" -DCMAKE_MAKE_PROGRAM=C:\Users\Kohn\GnuWin32\bin\make.exe
+
     cd ..
     echo complete
     exit /b 0
@@ -69,17 +71,17 @@ if "%ACTION%"=="build_lib" (
 
 if "%ACTION%"=="build_test" (
 :build_test
-    if not exist %BUILD_DIR%\%DLL_NAME% (
+    if not exist %BUILD_DIR%\%BUILD_SUB_DIR%\%DLL_NAME% (
     echo === Build Test ===
-        echo Not Found: %BUILD_DIR%\%DLL_NAME%
+        echo Not Found: %BUILD_DIR%\%BUILD_SUB_DIR%\%DLL_NAME%
         echo plz run: %0 build_lib
         exit /b 1
     )
 
     cd test
-    gcc main.cpp -L../%BUILD_DIR% -lMyLib -o ../%BUILD_DIR%/%TEST_EXE%
+    gcc main.cpp -L../%BUILD_DIR%/%BUILD_SUB_DIR% -lmincomp -o ../%BUILD_DIR%/%BUILD_SUB_DIR% /%TEST_EXE%
     cd ..
-    echo complete: %BUILD_DIR%\%TEST_EXE%
+    echo complete: %BUILD_DIR%\%BUILD_SUB_DIR%\%TEST_EXE%
     exit /b 0
 )
 
