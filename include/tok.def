@@ -9,7 +9,7 @@
     DEF(TOK_READ, "read")
     DEF(TOK_WRITE, "write")
     DEF(TOK_IDENTIFIER, "")
-    DEF(TOK_LITERAL, "")
+    DEF(TOK_NUM_LITERAL, "")
     DEF(TOK_OP_EQ, "=")
     DEF(TOK_OP_NE, "<>")
     DEF(TOK_OP_LEQ, "<=")

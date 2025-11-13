@@ -3,8 +3,6 @@
 
 #include "lexer.h"
 
-static enum TokenType token_type;
-
 static const char keywords[] =
 #define DEF(macro, str) str "\0"
 #include "tok.def"
@@ -73,6 +71,10 @@ void lexical_analyze(Lexer* lexer) {
     int ch;
     while ((ch = fgetc(lexer->input_file)) != EOF) {
         lexer->current_char++;
+
+        if (isspace(ch)) {
+            continue;
+        }
         
         if (ch == '\n') {
             write_eoln(lexer);
@@ -80,14 +82,149 @@ void lexical_analyze(Lexer* lexer) {
             lexer->current_char = 0;
             continue;
         }
+
+        Token token;
         
-        // Simple whitespace skipping
-        if (isspace(ch)) {
+        // number literal
+        if (isdigit(ch)) {
+            size_t len = 0;
+            token.lexeme[len++] = ch;
+            while ((ch = fgetc(lexer->input_file)) != EOF && isdigit(ch) && len < MAX_LEN_LEXME - 1) {
+                token.lexeme[len++] = ch;
+                lexer->current_char++;
+            }
+            ungetc(ch, lexer->input_file);
+            token.lexeme[len] = '\0';
+            token.type = TOK_NUM_LITERAL; 
+            write_token(lexer, &token);
             continue;
         }
-        
-        // Example tokenization logic
-        Token token;
+
+        // operators
+
+        if (ch == '-')
+        {
+            Token token;
+            token.type = TOK_OP_SUB; 
+            strcpy(token.lexeme, "-");
+            write_token(lexer, &token);
+            continue;
+        }
+
+        if (ch == '*')
+        {
+            Token token;
+            token.type = TOK_OP_MUL; 
+            strcpy(token.lexeme, "*");
+            write_token(lexer, &token);
+            continue;
+        }
+
+        // operator: <, <=, <>
+        if (ch == '<')
+        {
+            Token token;
+            int next_ch = fgetc(lexer->input_file);
+            lexer->current_char++;
+            if (next_ch == '=')
+            {
+                token.type = TOK_OP_LEQ; 
+                strcpy(token.lexeme, "<=");
+            }
+            else if (next_ch == '>')
+            {
+                token.type = TOK_OP_NE; 
+                strcpy(token.lexeme, "<>");
+            }
+            else
+            {
+                ungetc(next_ch, lexer->input_file);
+                lexer->current_char--;
+                token.type = TOK_OP_LT; 
+                strcpy(token.lexeme, "<");
+            }
+            write_token(lexer, &token);
+            continue;
+        }
+
+        if (ch == '=')
+        {
+            Token token;
+            token.type = TOK_OP_EQ; 
+            strcpy(token.lexeme, "=");
+            write_token(lexer, &token);
+            continue;
+        }
+
+        // operator: > and >=
+        if (ch == '>')
+        {
+            Token token;
+            int next_ch = fgetc(lexer->input_file);
+            lexer->current_char++;
+            if (next_ch == '=')
+            {
+                token.type = TOK_OP_GEQ; 
+                strcpy(token.lexeme, ">=");
+            }
+            else
+            {
+                ungetc(next_ch, lexer->input_file);
+                lexer->current_char--;
+                token.type = TOK_OP_GT; 
+                strcpy(token.lexeme, ">");
+            }
+            write_token(lexer, &token);
+            continue;
+        }
+
+        if (ch == ":")
+        {
+            Token token;
+            int next_ch = fgetc(lexer->input_file);
+            lexer->current_char++;
+            if (next_ch == '=')
+            {
+                token.type = TOK_OP_ASSIGN; 
+                strcpy(token.lexeme, ":=");
+                write_token(lexer, &token);
+            }
+            else
+            {
+                ungetc(next_ch, lexer->input_file);
+                lexer->current_char--;
+                write_error(lexer, "Unrecognized character ':'");
+            }
+            continue;
+        }
+
+        if (ch == ';')
+        {
+            Token token;
+            token.type = TOK_PUNCT_SEMICOLON; 
+            strcpy(token.lexeme, ";");
+            write_token(lexer, &token);
+            continue;
+        }
+
+        if (ch == '(')
+        {
+            Token token;
+            token.type = TOK_PUNCT_LPAR; 
+            strcpy(token.lexeme, "(");
+            write_token(lexer, &token);
+            continue;
+        }
+
+        if (ch == ')')
+        {
+            Token token;
+            token.type = TOK_PUNCT_RPAR; 
+            strcpy(token.lexeme, ")");
+            write_token(lexer, &token);
+            continue;
+        }
+
         if (isalpha(ch)) {
             size_t len = 0;
             token.lexeme[len++] = ch;
@@ -97,8 +234,19 @@ void lexical_analyze(Lexer* lexer) {
             }
             ungetc(ch, lexer->input_file);
             token.lexeme[len] = '\0';
-            token.type = TOK_IDENTIFIER; // Example token type
+            // check if keyword
+            const char *kw_ptr = keywords;
+            TokenType found_type = TOK_IDENTIFIER;
+            while (*kw_ptr) {
+                if (strcmp(token.lexeme, kw_ptr) == 0) {
+                    found_type = (TokenType)(TOK_NULL + (kw_ptr - keywords) / (MAX_LEN_LEXME + 1) + 1);
+                    break;
+                }
+                kw_ptr += strlen(kw_ptr) + 1;
+            }
+            token.type = found_type;
             write_token(lexer, &token);
+            continue;
         } else {
             write_error(lexer, "Unrecognized character");
         }

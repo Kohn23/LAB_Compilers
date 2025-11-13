@@ -1,5 +1,10 @@
+#ifndef LEXER_H
+#define LEXER_H
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "windll.h" 
 
 #define MAX_LEN_LEXME 32
 #define MAX_LEN_TOK_BUF 256
@@ -30,6 +35,8 @@ typedef struct {
 
 
 
-Lexer* lexer_init(const char *input_filename, const char *output_dir);
-void lexer_destroy(Lexer*);
-void lexical_analyze(Lexer*);
+CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir);
+CORE_API void lexer_destroy(Lexer*);
+CORE_API void lexical_analyze(Lexer*);
+
+#endif // LEXER_H
