@@ -57,7 +57,7 @@ CORE_API void lexer_destroy(Lexer *lexer) {
 }
 
 static void write_token(Lexer *lexer, const Token *token){
-    fprintf(lexer->dyd_file, "<%s, %d>\n", token->lexeme, token->type);
+    fprintf(lexer->dyd_file, "%s, %d\n", token->lexeme, token->type);
 }
 
 static void write_error(Lexer *lexer, const char *message){
@@ -65,34 +65,29 @@ static void write_error(Lexer *lexer, const char *message){
             lexer->current_line, lexer->current_char, message);
 }
 
-static void write_eoln(Lexer *lexer){
-    fprintf(lexer->dyd_file, "EOLN\n");
-}
-
-static void write_eof(Lexer *lexer){
-    fprintf(lexer->dyd_file, "EOF\n");
-}
-
 CORE_API void lexical_analyze(Lexer* lexer) {
     int ch;
     while ((ch = fgetc(lexer->input_file)) != EOF) {
         lexer->current_char++;
 
-        if (isspace(ch)) {
-            continue;
-        }
-        
         if (ch == '\n') {
-            write_eoln(lexer);
+            Token token;
+            token.type = TOK_EOLN; 
+            strcpy(token.lexeme, "EOLN");
+            write_token(lexer, &token);
             lexer->current_line++;
             lexer->current_char = 0;
             continue;
         }
-
-        Token token;
+        
+        // include '\n', thus check '\n' first
+        if (isspace(ch)) {
+            continue;
+        }
         
         // number literal
         if (isdigit(ch)) {
+            Token token;
             size_t len = 0;
             token.lexeme[len++] = ch;
             while ((ch = fgetc(lexer->input_file)) != EOF && isdigit(ch) && len < MAX_LEN_LEXME - 1) {
@@ -232,6 +227,7 @@ CORE_API void lexical_analyze(Lexer* lexer) {
         }
 
         if (isalpha(ch)) {
+            Token token;
             size_t len = 0;
             token.lexeme[len++] = ch;
             while ((ch = fgetc(lexer->input_file)) != EOF && isalnum(ch) && len < MAX_LEN_LEXME - 1) {
@@ -243,12 +239,14 @@ CORE_API void lexical_analyze(Lexer* lexer) {
             // check if keyword
             const char *kw_ptr = keywords;
             enum TokenType found_type = TOK_IDENTIFIER;
+            int keyword_index = 0;
             while (*kw_ptr) {
                 if (strcmp(token.lexeme, kw_ptr) == 0) {
-                    found_type = (enum TokenType)(TOK_NULL + (kw_ptr - keywords) / (MAX_LEN_LEXME + 1) + 1);
+                    found_type = (enum TokenType)(TOK_NULL + keyword_index + 1);
                     break;
                 }
                 kw_ptr += strlen(kw_ptr) + 1;
+                keyword_index++;
             }
             token.type = found_type;
             write_token(lexer, &token);
@@ -258,5 +256,9 @@ CORE_API void lexical_analyze(Lexer* lexer) {
         }
     }
     
-    write_eof(lexer);
+    // Write EOF token at the end
+    Token token;
+    token.type = TOK_EOF;
+    strcpy(token.lexeme, "EOF");
+    write_token(lexer, &token);
 }

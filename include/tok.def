@@ -22,5 +22,5 @@
     DEF(TOK_PUNCT_LPAR, "(")
     DEF(TOK_PUNCT_RPAR, ")")
     DEF(TOK_PUNCT_SEMICOLON, ";")
-    DEF(TOK_FILE_EOLN, "")
-    DEF(TOK_FILE_EOF, "")
+    DEF(TOK_EOLN, "")
+    DEF(TOK_EOF, "")
