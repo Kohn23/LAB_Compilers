@@ -65,6 +65,9 @@ if "%ACTION%"=="build_lib" (
     echo === Compile DLL ===
     cd %BUILD_DIR%
     cmake --build .
+    if not exist %BUILD_TEST_DIR% mkdir %BUILD_TEST_DIR%
+    copy %BUILD_LIB_DIR%\%DLL_NAME% %BUILD_TEST_DIR%\
+
     cd ..
     echo complete
     exit /b 0
@@ -78,9 +81,7 @@ if "%ACTION%"=="build_test" (
         echo plz run: %0 build_lib
         exit /b 1
     )
-    if not exist %BUILD_DIR%\%BUILD_TEST_DIR% mkdir %BUILD_DIR%\%BUILD_TEST_DIR%
-
-    if not exist %BUILD_DIR%\%BUILD_TEST_DIR%\%DLL_NAME% copy %BUILD_DIR%\%BUILD_LIB_DIR%\%DLL_NAME% %BUILD_DIR%\%BUILD_TEST_DIR%\
+    
 
     cd test
     gcc LabTest.c -L../%BUILD_DIR%/%BUILD_LIB_DIR% -lminicomp -o ../%BUILD_DIR%/%BUILD_TEST_DIR%/%TEST_EXE%

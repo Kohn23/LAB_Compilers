@@ -10,12 +10,17 @@ static const char keywords[] =
 ;
 
 CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir) {
+    printf("Initializing lexer with input file: %s and output dir: %s\n", input_filename, output_dir);
     Lexer *lexer = (Lexer*)malloc(sizeof(Lexer));
-    if (!lexer) return NULL;
+    if (!lexer) {
+        printf("Memory allocation for Lexer failed\n");
+        return NULL;
+    }
 
     lexer->input_file = fopen(input_filename, "r");
     if (!lexer->input_file) {
         free(lexer);
+        printf("Failed to open input file: %s\n", input_filename);
         return NULL;
     }
     
@@ -30,6 +35,7 @@ CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir) {
     if (!lexer->dyd_file || !lexer->err_file) {
         if (lexer->dyd_file) fclose(lexer->dyd_file);
         if (lexer->err_file) fclose(lexer->err_file);
+        printf("Failed to open output files in directory: %s\n", output_dir);
         fclose(lexer->input_file);
         free(lexer);
         return NULL;
