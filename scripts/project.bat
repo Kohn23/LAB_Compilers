@@ -5,7 +5,8 @@ setlocal enabledelayedexpansion
 
 set ACTION=%~1
 set BUILD_DIR=build
-set BUILD_SUB_DIR=src
+set BUILD_LIB_DIR=src
+set BUILD_TEST_DIR=test
 set DLL_NAME=libminicomp.dll
 set TEST_EXE=test.exe
 
@@ -35,10 +36,10 @@ if "%ACTION%"=="" (
     )
     
     echo.
-    echo [4/4] run...
-    call :run
+    echo [4/4] run_test...
+    call :run_test
     if errorlevel 1 (
-        echo run FAIL
+        echo run_test FAIL
         exit /b 1
     )
     
@@ -71,35 +72,36 @@ if "%ACTION%"=="build_lib" (
 
 if "%ACTION%"=="build_test" (
 :build_test
-    if not exist %BUILD_DIR%\%BUILD_SUB_DIR%\%DLL_NAME% (
+    if not exist %BUILD_DIR%\%BUILD_LIB_DIR%\%DLL_NAME% (
     echo === Build Test ===
-        echo Not Found: %BUILD_DIR%\%BUILD_SUB_DIR%\%DLL_NAME%
+        echo Not Found: %BUILD_DIR%\%BUILD_LIB_DIR%\%DLL_NAME%
         echo plz run: %0 build_lib
         exit /b 1
     )
+    if not exist %BUILD_DIR%\%BUILD_TEST_DIR% mkdir %BUILD_DIR%\%BUILD_TEST_DIR%
+
+    if not exist %BUILD_DIR%\%BUILD_TEST_DIR%\%DLL_NAME% copy %BUILD_DIR%\%BUILD_LIB_DIR%\%DLL_NAME% %BUILD_DIR%\%BUILD_TEST_DIR%\
 
     cd test
-    gcc main.cpp -L../%BUILD_DIR%/%BUILD_SUB_DIR% -lmincomp -o ../%BUILD_DIR%/%BUILD_SUB_DIR% /%TEST_EXE%
+    gcc LabTest.c -L../%BUILD_DIR%/%BUILD_LIB_DIR% -lminicomp -o ../%BUILD_DIR%/%BUILD_TEST_DIR%/%TEST_EXE%
     cd ..
-    echo complete: %BUILD_DIR%\%BUILD_SUB_DIR%\%TEST_EXE%
+    echo complete: %BUILD_DIR%\%BUILD_TEST_DIR%\%TEST_EXE%
     exit /b 0
 )
 
-if "%ACTION%"=="run" (
-:run
+if "%ACTION%"=="run_test" (
+:run_test
     echo === run test ===
-    if not exist %BUILD_DIR%\%TEST_EXE% (
-        echo Not Found: %BUILD_DIR%\%TEST_EXE%
+    if not exist %BUILD_DIR%\%BUILD_TEST_DIR%\%TEST_EXE% (
+        echo Not Found: %BUILD_DIR%\%BUILD_TEST_DIR%\%TEST_EXE%
         echo plz run: %0 build_test
         exit /b 1
     )
 
-    cd %BUILD_DIR%
-    .\%TEST_EXE%
-    cd ..
+    .\%BUILD_DIR%\%BUILD_TEST_DIR%\%TEST_EXE%
     exit /b 0
 )
 
 echo Unknown cmd: %ACTION%
-echo Valid cmd: config, build_lib, build_test, run
+echo Valid cmd: config, build_lib, build_test, run_test
 exit /b 1
