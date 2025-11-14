@@ -2,9 +2,9 @@
 #include "..\include\core.h"
 
 /*fopen is based on cwd*/
-#define INPUTE_FILE1 "cases/test1.mini"
-#define INPUTE_FILE2 "cases/test2.mini"
-#define OUTPUT_DIR "output/"
+#define INPUTE_FILE1 "./test/cases/test1.mini"
+#define INPUTE_FILE2 "./test/cases/test2.mini"
+#define OUTPUT_DIR "./test/output/"
 
 
 void test_lexer(){
