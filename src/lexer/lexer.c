@@ -43,8 +43,6 @@ CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir) {
     
     lexer->current_line = 1;
     lexer->current_char = 0;
-    lexer->buffer_index = 0;
-    lexer->token_buffer[0] = '\0';
     
     return lexer;
 }

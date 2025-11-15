@@ -7,7 +7,6 @@
 #include "windll.h" 
 
 #define MAX_LEN_LEXME 32
-#define MAX_LEN_TOK_BUF 256
 
 // Lexical Analyzer
 typedef struct {
@@ -17,8 +16,6 @@ typedef struct {
     
     size_t current_line;  
     size_t current_char;
-    char token_buffer[MAX_LEN_TOK_BUF];
-    size_t buffer_index;
 } Lexer;
 
 enum TokenType {

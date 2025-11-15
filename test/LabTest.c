@@ -9,7 +9,7 @@
 
 void test_lexer(){
     printf("Starting lexer test...\n");
-    Lexer* lexer = lexer_init(INPUTE_FILE2, OUTPUT_DIR);
+    Lexer* lexer = lexer_init(INPUTE_FILE1, OUTPUT_DIR);
     if(lexer == NULL){
         printf("Lexer initialization failed\n");
         return;
