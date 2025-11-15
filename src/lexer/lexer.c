@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "common.h"
 
 static const char keywords[] =
 #define DEF(macro, str) str "\0"
@@ -23,11 +24,13 @@ CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir) {
         printf("Failed to open input file: %s\n", input_filename);
         return NULL;
     }
+
+    char *base_filename = get_base_filename(input_filename);
     
     char dyd_filename[256];
     char err_filename[256];
-    snprintf(dyd_filename, sizeof(dyd_filename), "%s.dyd", output_dir);
-    snprintf(err_filename, sizeof(err_filename), "%s.err", output_dir);
+    snprintf(dyd_filename, sizeof(dyd_filename), "%s%s.dyd", output_dir, base_filename);
+    snprintf(err_filename, sizeof(err_filename), "%s%s.err", output_dir, base_filename);
     
     lexer->dyd_file = fopen(dyd_filename, "w");
     lexer->err_file = fopen(err_filename, "w");

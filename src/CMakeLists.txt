@@ -1,19 +1,24 @@
-set(CORE_COMPONENTS)
+set(CORE_SOURCES "")
 
 add_subdirectory(lexer)
 
-add_library(core SHARED
-    ${CORE_COMPONENTS}
+list(APPEND CORE_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/common.c
 )
 
-target_include_directories(core
+add_library(minicomp SHARED
+    ${CORE_SOURCES}
+)
+
+target_include_directories(minicomp
     PUBLIC 
-        ${CMAKE_SOURCE_DIR}/include                     
+        ${CMAKE_SOURCE_DIR}/include   
+        ${CMAKE_CURRENT_SOURCE_DIR}                   
 )
 
-target_compile_definitions(core PRIVATE BUILDING_CORE_DLL)
+target_compile_definitions(minicomp PRIVATE BUILDING_MINICOMP_DLL)
 
-set_target_properties(core PROPERTIES
+set_target_properties(minicomp PROPERTIES
     OUTPUT_NAME "minicomp"                
     VERSION 1.0.0                     
     SOVERSION 1                       
