@@ -13,7 +13,6 @@ typedef struct {
     FILE *input_file;   
     FILE *dyd_file;    
     FILE *err_file;
-    
     size_t current_line;  
     size_t current_char;
 } Lexer;

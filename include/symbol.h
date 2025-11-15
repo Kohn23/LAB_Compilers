@@ -6,15 +6,13 @@
 
 // Symbol Table is splitted into Variable Table and Procedure Table as experiment required
 
-
-
 typedef struct {
     
 } VarEntry;
 
 
 typedef struct {
-
+    
 } VarTable;
 
 typedef struct{
