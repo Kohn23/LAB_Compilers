@@ -3,6 +3,6 @@ begin
   integer y
   read(x);
   if x > 0 then
-    y := x * 2;
+    y : x * 2;
   else
 edn

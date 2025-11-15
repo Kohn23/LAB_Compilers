@@ -57,12 +57,12 @@ CORE_API void lexer_destroy(Lexer *lexer) {
 }
 
 static void write_token(Lexer *lexer, const Token *token){
-    fprintf(lexer->dyd_file, "%s, %d\n", token->lexeme, token->type);
+    fprintf(lexer->dyd_file, "%s %d\n", token->lexeme, token->type);
 }
 
-static void write_error(Lexer *lexer, const char *message){
-    fprintf(lexer->err_file, "Error at line %zu, char %zu: %s\n", 
-            lexer->current_line, lexer->current_char, message);
+static void write_error(Lexer *lexer, const char *message, const char *token_lexeme){
+    fprintf(lexer->err_file, "LINE:%zu %s:'%s'\n", 
+            lexer->current_line, message, token_lexeme);
 }
 
 CORE_API void lexical_analyze(Lexer* lexer) {
@@ -194,7 +194,7 @@ CORE_API void lexical_analyze(Lexer* lexer) {
             {
                 ungetc(next_ch, lexer->input_file);
                 lexer->current_char--;
-                write_error(lexer, "Unrecognized character ':'");
+                write_error(lexer, "Unrecognized token", ":");
             }
             continue;
         }
@@ -252,7 +252,7 @@ CORE_API void lexical_analyze(Lexer* lexer) {
             write_token(lexer, &token);
             continue;
         } else {
-            write_error(lexer, "Unrecognized character");
+            write_error(lexer, "Unrecognized token", (char[]){(char)ch, '\0'});
         }
     }
     
