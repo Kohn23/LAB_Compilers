@@ -29,6 +29,7 @@ CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir) {
     
     char dyd_filename[256];
     char err_filename[256];
+    printf("%s", base_filename);
     snprintf(dyd_filename, sizeof(dyd_filename), "%s%s.dyd", output_dir, base_filename);
     snprintf(err_filename, sizeof(err_filename), "%s%s.err", output_dir, base_filename);
     

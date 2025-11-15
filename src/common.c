@@ -1,6 +1,6 @@
 #include "common.h"
 
-static char* get_base_filename(const char *full_path) {
+char* get_base_filename(const char *full_path) {
     static char base_name[256];
     
     const char *last_slash = strrchr(full_path, PATH_SEPARATOR);
