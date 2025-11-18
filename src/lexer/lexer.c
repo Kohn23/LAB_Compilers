@@ -31,7 +31,7 @@ CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir) {
     char err_filename[256];
     printf("%s", base_filename);
     snprintf(dyd_filename, sizeof(dyd_filename), "%s%s.dyd", output_dir, base_filename);
-    snprintf(err_filename, sizeof(err_filename), "%s%s.err", output_dir, base_filename);
+    snprintf(err_filename, sizeof(err_filename), "%s%slex.err", output_dir, base_filename);
     
     lexer->dyd_file = fopen(dyd_filename, "w");
     lexer->err_file = fopen(err_filename, "w");
@@ -240,11 +240,11 @@ CORE_API void lexical_analyze(Lexer* lexer) {
             token.lexeme[len] = '\0';
             // check if keyword
             const char *kw_ptr = keywords;
-            enum TokenType found_type = TOK_IDENTIFIER;
+            TokenType found_type = TOK_IDENTIFIER;
             int keyword_index = 0;
             while (*kw_ptr) {
                 if (strcmp(token.lexeme, kw_ptr) == 0) {
-                    found_type = (enum TokenType)(TOK_NULL + keyword_index + 1);
+                    found_type = (TokenType)(TOK_NULL + keyword_index + 1);
                     break;
                 }
                 kw_ptr += strlen(kw_ptr) + 1;
