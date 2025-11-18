@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "..\include\core.h"
 
 /*fopen is based on cwd*/
@@ -6,20 +8,47 @@
 #define INPUTE_FILE2 "./test/cases/test2.mini"
 #define OUTPUT_DIR "./test/output/"
 
+#define PATH_SEPARATOR '/'
+
+char* get_base_filename(const char *full_path) {
+    static char base_name[256];
+    
+    const char *last_slash = strrchr(full_path, PATH_SEPARATOR);
+#ifdef _WIN32
+    const char *last_backslash = strrchr(full_path, PATH_SEPARATOR);
+    if (last_backslash && (!last_slash || last_backslash > last_slash)) {
+        last_slash = last_backslash;
+    }
+#endif
+    
+    const char *filename = last_slash ? last_slash + 1 : full_path;
+    
+    strncpy(base_name, filename, sizeof(base_name) - 1);
+    base_name[sizeof(base_name) - 1] = '\0';
+    
+    char *dot = strrchr(base_name, '.');
+    if (dot) {
+        *dot = '\0';
+    }
+    
+    return base_name;
+}
+
 
 void test_lexer(){
-    printf("Starting lexer test...\n");
-    Lexer* lexer = lexer_init(INPUTE_FILE2, OUTPUT_DIR);
-    if(lexer == NULL){
-        printf("Lexer initialization failed\n");
-        return;
-    }
-    printf("Lexer initialized successfully\n");
-    lexical_analyze(lexer);
-    printf("Lexical analysis completed\n");
+    ErrorLogger* error_logger = init_errorlogger();
+    TokenStream* token_stream = lex_analyze(INPUTE_FILE1, error_logger);
 
-    lexer_destroy(lexer);
-    printf("Lexer destroyed successfully\n");
+    // Generate output files
+    char *base_filename = get_base_filename(INPUTE_FILE1);
+    char dyd_filename[256];
+    char err_filename[256];
+    snprintf(dyd_filename, sizeof(dyd_filename), "%s%s.dyd", OUTPUT_DIR, base_filename);
+    snprintf(err_filename, sizeof(err_filename), "%s%slex.err", OUTPUT_DIR, base_filename);
+    fprint_tokenstream(dyd_filename, token_stream);
+    fprint_errors(err_filename, error_logger);
+
+    free_errorlogger(error_logger);
 }
 
 int main(){

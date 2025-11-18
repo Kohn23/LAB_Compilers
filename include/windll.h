@@ -1,3 +1,6 @@
+#ifndef WINDLL_H
+#define WINDLL_H
+
 // Windows DLL
 #ifdef _WIN32
     #ifdef BUILDING_CORE_DLL
@@ -12,3 +15,4 @@
     #define CORE_API
 #endif
 
+#endif // WINDLL_H

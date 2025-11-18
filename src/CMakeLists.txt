@@ -1,9 +1,11 @@
 set(CORE_SOURCES "")
 
+add_subdirectory(error)
 add_subdirectory(lexer)
 
 list(APPEND CORE_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/common.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/tok.c
 )
 
 add_library(minicomp SHARED

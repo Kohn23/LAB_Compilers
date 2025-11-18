@@ -1,25 +1,37 @@
 #include "common.h"
+#include <string.h>
 
-char* get_base_filename(const char *full_path) {
-    static char base_name[256];
-    
-    const char *last_slash = strrchr(full_path, PATH_SEPARATOR);
-#ifdef _WIN32
-    const char *last_backslash = strrchr(full_path, PATH_SEPARATOR);
-    if (last_backslash && (!last_slash || last_backslash > last_slash)) {
-        last_slash = last_backslash;
-    }
-#endif
-    
-    const char *filename = last_slash ? last_slash + 1 : full_path;
-    
-    strncpy(base_name, filename, sizeof(base_name) - 1);
-    base_name[sizeof(base_name) - 1] = '\0';
-    
-    char *dot = strrchr(base_name, '.');
-    if (dot) {
-        *dot = '\0';
+void log_error(ErrorLogger* error_logger, const char *message, size_t line, const char* character) {
+    if (error_logger->count >= error_logger->capacity) {
+        size_t new_capacity = error_logger->capacity * 2;
+        ErrorInfo* new_errors = (ErrorInfo*)realloc(error_logger->errors, new_capacity * sizeof(ErrorInfo));
+        if (!new_errors) {
+            // Handle memory allocation failure
+            return;
+        }
+        error_logger->errors = new_errors;
+        error_logger->capacity = new_capacity;
     }
     
-    return base_name;
+    ErrorInfo* error = &error_logger->errors[error_logger->count++];
+    strncpy(error->message, message, MAX_ERROR_MSG_LEN - 1);
+    error->message[MAX_ERROR_MSG_LEN - 1] = '\0';
+    error->line = line;
+    error->character = *character;
 }
+
+
+TokenStream* init_tokenstream() {
+    TokenStream* ts = (TokenStream*)malloc(sizeof(TokenStream));
+    if (!ts) {
+        return NULL;
+    }
+    ts->tokens = (Token*)malloc(MAX_LEN_TOKENSTREAM * sizeof(Token));
+    if (!ts->tokens) {
+        free(ts);
+        return NULL;
+    }
+    ts->count = 0;
+    ts->capacity = MAX_LEN_TOKENSTREAM;
+    return ts;
+} 

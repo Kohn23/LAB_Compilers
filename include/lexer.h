@@ -6,19 +6,15 @@
 
 #include "windll.h" 
 #include "tok.h"
+#include "error.h"
 
 // Lexical Analyzer
 typedef struct {
-    FILE *input_file;   
-    FILE *dyd_file;    
-    FILE *err_file;
     size_t current_line;  
     size_t current_char;
 } Lexer;
 
 
-CORE_API Lexer* lexer_init(const char *input_filename, const char *output_dir);
-CORE_API void lexer_destroy(Lexer*);
-CORE_API void lexical_analyze(Lexer*);
+CORE_API TokenStream* lex_analyze(const char *input_filename, ErrorLogger*);
 
 #endif // LEXER_H

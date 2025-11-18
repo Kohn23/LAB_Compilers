@@ -1,19 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+#include "error.h"
+#include "tok.h"
 
-// #ifdef _WIN32
-// #include <windows.h>
-// #define PATH_SEPARATOR '\\'
-// #else
-// #define PATH_SEPARATOR '/'
-// #endif
-#define PATH_SEPARATOR '/'
+void log_error(ErrorLogger* error_logger, const char *message, size_t line, const char* character);
 
-char* get_base_filename(const char *full_path);
+TokenStream* init_tokenstream();
 
 #endif // COMMON_H

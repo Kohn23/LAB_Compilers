@@ -1,6 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "windll.h"
 #include "sym.h"
 #include "tok.h"
 
