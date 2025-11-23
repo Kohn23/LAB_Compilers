@@ -7,7 +7,7 @@
 
 
 // error
-void log_error(ErrorLogger*, const char *message, size_t line, const char* spec);
+void log_error(ErrorLogger*, ErrorInfo);
 // sym
 // delete is not nessesary for current grammar
 // int lookup_var(VarTable* , const char* vname);

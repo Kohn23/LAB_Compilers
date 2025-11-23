@@ -29,6 +29,13 @@ static void free_lexer(Lexer *lexer) {
     free(lexer);
 }
 
+static ErrorInfo lex_error_format(const char* message, size_t line, const char* spec) {
+    // create error info
+    static char error_info[MAX_LEN_ERROR_INFO];
+    snprintf(error_info, MAX_LEN_ERROR_INFO, "Line:%zu %s:'%s'", line, message, spec);
+    return error_info;
+}
+
 CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream, ErrorLogger* errorlogger) {
     Lexer* lexer = init_lexer();
     
@@ -157,7 +164,7 @@ CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream,
             {
                 ungetc(next_ch, input_file);
                 lexer->current_char--;
-                log_error(errorlogger, "Unrecognized token", lexer->current_line, (char[]){(char)ch, '\0'});
+                log_error(errorlogger, lex_error_format("Unrecognized token", lexer->current_line, (char[]){(char)ch, '\0'}));
                 // heuristic recovery: treat ':' as assignment
                 token_stream->tokens[token_stream->count].type = TOK_OP_ASSIGN; 
                 strcpy(token_stream->tokens[token_stream->count].lexeme, ":=");
@@ -210,7 +217,7 @@ CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream,
             token_stream->count++;
             continue;
         } else {
-            log_error(errorlogger, "Unrecognized token", lexer->current_line, (char[]){(char)ch, '\0'});
+            log_error(errorlogger, lex_error_format("Unrecognized token", lexer->current_line, (char[]){(char)ch, '\0'}));
         }
     }
     // Write EOF token at the end

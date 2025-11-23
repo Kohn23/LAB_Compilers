@@ -43,21 +43,24 @@ static Token* advance_token(Parser* parser) {
 
 // <程序>→<分程序>
 static ParseStatus parse_program(Parser* parser) {
-    parse_subprogram(parser);
+    return parse_subprogram(parser);
 }
 
 // <分程序>→begin <说明语句表>；<执行语句表> end
 static ParseStatus parse_subprogram(Parser* parser) {
-    Token* token = advance_token(parser);
+    Token* token;
+    ParseStatus status;
+    token = advance_token(parser);
     if (token->type != TOK_BEGIN) {
-        log_error(parser->errlog, "Expected", parser->current_line, "begin");
+        log_error(parser->errlog, "Expecting", parser->current_line, "begin");
         return PARSE_STATUS_FAILED;
     }
-    parse_declaration_list(parser);
 
-    token = advance_token(parser);
+    status = parse_declaration_list(parser);
+
+    token = advance_token(parser); 
     if (token->type != TOK_PUNCT_SEMICOLON) {
-        log_error(parser->errlog, "Expected ;", parser->current_line, token->lexeme);
+        log_error(parser->errlog, "Expecting", parser->current_line, token->lexeme);
         return PARSE_STATUS_FAILED;
     }
 }
