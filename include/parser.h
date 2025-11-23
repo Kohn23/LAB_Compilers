@@ -5,29 +5,19 @@
 #include <stdlib.h>
 
 #include "windll.h"
-#include "sym.h"
 #include "tok.h"
+#include "sym.h"
+#include "error.h"
+
 
 typedef struct {
-    Token* tokens;
-    int token_count;
-    int current_index;
-    int error_count;
-    
-    int source_line;            
-    
-    VarTable* var_table;
-    ProcTable* proc_table;
-    
+    size_t current_line;
+    size_t current_level;
     char current_proc[MAX_LEN_PROC_NAME];
-    int current_level;
     int in_function;
-    
-    FILE* err_file;
-    FILE* var_file;
-    FILE* pro_file;
-} ParserState;
+}Parser;
 
+CORE_API void recuersive_descent_parse(TokenStream* , VarTable* , ProcTable* , ErrorLogger* );
 
 
 #endif // PARSER_H

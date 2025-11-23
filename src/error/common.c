@@ -7,6 +7,7 @@ void log_error(ErrorLogger* error_logger, const char *message, size_t line, cons
         ErrorInfo* new_errors = (ErrorInfo*)realloc(error_logger->errors, new_capacity * sizeof(ErrorInfo));
         if (!new_errors) {
             // Handle memory allocation failure
+            perror("Failed to allocate memory for error logger");
             return;
         }
         error_logger->errors = new_errors;

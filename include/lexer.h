@@ -15,6 +15,6 @@ typedef struct {
 } Lexer;
 
 
-CORE_API TokenStream* lex_analyze(const char *input_filename, ErrorLogger*);
+CORE_API void lex_analyze(const char *input_filename, TokenStream* , ErrorLogger* );
 
 #endif // LEXER_H

@@ -5,6 +5,11 @@
 #define MAX_LEN_PROC_NAME 16
 #define MAX_TABLE_SIZE 100
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "windll.h"
+
 // Symbol Table is splitted into Variable Table and Procedure Table as experiment required
 // VarType only contains INT and FUNCT for now, can be extended later
 
@@ -16,7 +21,7 @@ typedef enum {
 typedef enum{
     VAR_TYPE_INT,
     VAR_TYPE_FUNCT
-}VarType
+}VarType;
 
 typedef struct{
     char vname[MAX_LEN_VAR_NAME];
@@ -61,5 +66,12 @@ typedef struct {
     ProcEntry entries[MAX_TABLE_SIZE];  
     int count;
 } ProcTable;
+
+CORE_API VarTable* init_var_table();
+CORE_API ProcTable* init_proc_table();
+CORE_API void free_var_table(VarTable* );
+CORE_API void free_proc_table(ProcTable* );
+CORE_API void fprint_var_table(const char* filename, VarTable* );
+CORE_API void fprint_proc_table(const char* filename, ProcTable* );
 
 #endif /* _SYMBOL_H */

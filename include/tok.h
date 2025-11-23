@@ -29,7 +29,10 @@ typedef struct {
     size_t capacity;
 }TokenStream;
 
+CORE_API TokenStream* init_tokenstream();
+CORE_API void free_tokenstream(TokenStream* );
 CORE_API void fprint_tokenstream(const char* filepath, TokenStream* );
 CORE_API void fload_tokenstream(const char* filepath, TokenStream* );
+
 
 #endif // _TOK_H

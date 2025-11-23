@@ -1,0 +1,22 @@
+Error:
+ErrorLogger* init_errorlogger();
+void free_errorlogger(ErrorLogger* );
+void fprint_errors(const char* filepath, ErrorLogger* );
+
+Token:
+void fprint_tokenstream(const char* filepath, TokenStream* );
+void fload_tokenstream(const char* filepath, TokenStream* );
+
+Symbols:
+VarTable* init_var_table();
+ProcTable* init_proc_table();
+void free_var_table(VarTable* );
+void free_proc_table(ProcTable* );
+void fprint_var_table(const char* filename, VarTable* );
+void fprint_proc_table(const char* filename, ProcTable* );
+
+Lexer:
+TokenStream* lex_analyze(const char *input_filename, ErrorLogger*);
+
+Parsing:
+void recuersive_descent_parse(TokenStream* , VarTable* , ProcTable* , ErrorLogger* );

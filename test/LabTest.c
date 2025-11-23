@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "..\include\core.h"
+#include "..\include\minicomp.h"
 
 /*fopen is based on cwd*/
 #define INPUTE_FILE1 "./test/cases/test1.mini"
@@ -37,18 +37,21 @@ char* get_base_filename(const char *full_path) {
 
 void test_lexer(){
     ErrorLogger* error_logger = init_errorlogger();
-    TokenStream* token_stream = lex_analyze(INPUTE_FILE1, error_logger);
+    TokenStream* token_stream = init_tokenstream();
+    lex_analyze(INPUTE_FILE2, token_stream, error_logger);
 
     // Generate output files
-    char *base_filename = get_base_filename(INPUTE_FILE1);
+    char *base_filename = get_base_filename(INPUTE_FILE2);
     char dyd_filename[256];
     char err_filename[256];
     snprintf(dyd_filename, sizeof(dyd_filename), "%s%s.dyd", OUTPUT_DIR, base_filename);
-    snprintf(err_filename, sizeof(err_filename), "%s%slex.err", OUTPUT_DIR, base_filename);
+    snprintf(err_filename, sizeof(err_filename), "%s%s.err", OUTPUT_DIR, base_filename);
+    // Print tokenstream to files
     fprint_tokenstream(dyd_filename, token_stream);
     fprint_errors(err_filename, error_logger);
 
     free_errorlogger(error_logger);
+    free_tokenstream(token_stream);
 }
 
 int main(){

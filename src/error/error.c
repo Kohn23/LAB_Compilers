@@ -33,7 +33,7 @@ CORE_API void fprint_errors(const char* filepath, ErrorLogger* error_logger) {
     
     for (size_t i = 0; i < error_logger->count; i++) {
         ErrorInfo* error = &error_logger->errors[i];
-        fprintf(file, "LINE:%zu %s:'%s'\n", error->line, error->message, error->character);
+        fprintf(file, "LINE:%zu %s:'%c'\n", error->line, error->message, error->character);
     }
     
     fclose(file);

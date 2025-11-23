@@ -29,19 +29,12 @@ static void free_lexer(Lexer *lexer) {
     free(lexer);
 }
 
-CORE_API TokenStream* lex_analyze(const char *input_filename, ErrorLogger* errorlogger) {
+CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream, ErrorLogger* errorlogger) {
     Lexer* lexer = init_lexer();
-
     
     FILE* input_file = fopen(input_filename, "r");
     if(input_file == NULL){
         perror("Error opening input file");
-        exit(EXIT_FAILURE);
-    }
-
-    TokenStream* token_stream = init_tokenstream();
-    if(token_stream == NULL){
-        perror("Error initializing token stream");
         exit(EXIT_FAILURE);
     }
 
@@ -229,5 +222,5 @@ CORE_API TokenStream* lex_analyze(const char *input_filename, ErrorLogger* error
     free_lexer(lexer);
     fclose(input_file);
 
-    return token_stream;
+    printf("Lexical analysis completed. Total tokens: %zu\n", token_stream->count);
 }
