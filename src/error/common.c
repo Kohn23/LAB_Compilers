@@ -1,7 +1,7 @@
 #include "common.h"
 #include <string.h>
 
-void log_error(ErrorLogger* error_logger, const char *message, size_t line, const char* character) {
+void log_error(ErrorLogger* error_logger, const char *message, size_t line, const char* spec) {
     if (error_logger->count >= error_logger->capacity) {
         size_t new_capacity = error_logger->capacity * 2;
         ErrorInfo* new_errors = (ErrorInfo*)realloc(error_logger->errors, new_capacity * sizeof(ErrorInfo));
@@ -18,5 +18,6 @@ void log_error(ErrorLogger* error_logger, const char *message, size_t line, cons
     strncpy(error->message, message, MAX_ERROR_MSG_LEN - 1);
     error->message[MAX_ERROR_MSG_LEN - 1] = '\0';
     error->line = line;
-    error->character = *character;
+    strncpy(error->spec, spec, MAX_LEN_ERROR_SPEC - 1);
+    error->spec[MAX_LEN_ERROR_SPEC - 1] = '\0';
 }

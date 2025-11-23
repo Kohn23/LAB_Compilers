@@ -2,6 +2,7 @@
 #define ERROR_H
 
 #define MAX_ERROR_MSG_LEN 256
+#define MAX_LEN_ERROR_SPEC 32
 #define MAX_ERRORS 128
 
 #include<stdio.h>
@@ -12,7 +13,7 @@
 typedef struct {
     char message[MAX_ERROR_MSG_LEN];
     size_t line;
-    char character;
+    char spec[MAX_LEN_ERROR_SPEC];
 } ErrorInfo;
 
 typedef struct {

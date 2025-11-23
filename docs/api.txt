@@ -4,6 +4,8 @@ void free_errorlogger(ErrorLogger* );
 void fprint_errors(const char* filepath, ErrorLogger* );
 
 Token:
+TokenStream* init_tokenstream();
+void free_tokenstream(TokenStream* );
 void fprint_tokenstream(const char* filepath, TokenStream* );
 void fload_tokenstream(const char* filepath, TokenStream* );
 

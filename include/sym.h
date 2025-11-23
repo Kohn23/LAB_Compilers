@@ -19,9 +19,12 @@ typedef enum {
 }VarKind;
 
 typedef enum{
-    VAR_TYPE_INT,
-    VAR_TYPE_FUNCT
+    VAR_TYPE_INT
 }VarType;
+
+const char* var_type_to_str[] = {
+    "int"
+};
 
 typedef struct{
     char vname[MAX_LEN_VAR_NAME];
@@ -32,22 +35,21 @@ typedef struct{
     int vaddr; // offset in table
 } VarAttr;
 
-typedef struct {
-    VarAttr vattr;
-    int is_occupied;
-} VarEntry;
-
 // linear probing
 typedef struct {
-    VarEntry entries[MAX_TABLE_SIZE];  
+    VarAttr entries[MAX_TABLE_SIZE];  
     int count;                         
-    int next_addr; 
 } VarTable;
 
 typedef enum {
     PROC_TYPE_MAIN,     
     PROC_TYPE_FUNCTION  
 } ProcType;
+
+const char* ptype_to_str[] = {
+    "main",
+    "function"
+};
 
 typedef struct{
     char pname[MAX_LEN_PROC_NAME];  
@@ -58,12 +60,7 @@ typedef struct{
 } ProcAttr;
 
 typedef struct {
-    ProcAttr attr;      
-    int is_occupied;    
-} ProcEntry;
-
-typedef struct {
-    ProcEntry entries[MAX_TABLE_SIZE];  
+    ProcAttr entries[MAX_TABLE_SIZE];  
     int count;
 } ProcTable;
 

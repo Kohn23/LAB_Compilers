@@ -4,11 +4,11 @@
 #include "lexer.h"
 #include "common.h"
 
-static const char keywords[] =
-#define DEF(macro, str) str "\0"
+static const char* keywords[] = {
+#define DEF(macro, str) str ,
 #include "tok.def"
 #undef DEF
-;
+};
 
 static Lexer* init_lexer() {
     printf("Initializing lexer\n");
@@ -158,6 +158,10 @@ CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream,
                 ungetc(next_ch, input_file);
                 lexer->current_char--;
                 log_error(errorlogger, "Unrecognized token", lexer->current_line, (char[]){(char)ch, '\0'});
+                // heuristic recovery: treat ':' as assignment
+                token_stream->tokens[token_stream->count].type = TOK_OP_ASSIGN; 
+                strcpy(token_stream->tokens[token_stream->count].lexeme, ":=");
+                token_stream->count++;
             }
             continue;
         }
@@ -195,17 +199,12 @@ CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream,
             }
             ungetc(ch, input_file);
             token_stream->tokens[token_stream->count].lexeme[len] = '\0';
-            // check if keyword
-            const char *kw_ptr = keywords;
             TokenType found_type = TOK_IDENTIFIER;
-            int keyword_index = 0;
-            while (*kw_ptr) {
-                if (strcmp(token_stream->tokens[token_stream->count].lexeme, kw_ptr) == 0) {
-                    found_type = (TokenType)(TOK_NULL + keyword_index + 1);
+            for (int i = 0; i < TOK_NULL; i++) {
+                if (strcmp(token_stream->tokens[token_stream->count].lexeme, keywords[i]) == 0) {
+                    found_type = (TokenType)(TOK_NULL + i + 1);
                     break;
                 }
-                kw_ptr += strlen(kw_ptr) + 1;
-                keyword_index++;
             }
             token_stream->tokens[token_stream->count].type = found_type;
             token_stream->count++;
