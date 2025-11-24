@@ -24,6 +24,7 @@ typedef struct {
     size_t current_line;
     size_t current_level;
     char current_proc[MAX_LEN_PROC_NAME];
+    char last_proc[MAX_LEN_PROC_NAME];
 }Parser;
 
 CORE_API void recursive_descent_parse(TokenStream* , VarTable* , ProcTable* , ErrorLogger* );

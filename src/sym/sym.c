@@ -30,10 +30,9 @@ CORE_API void fprint_var_table(const char* filename, VarTable* table){
         perror("Error");
         return;
     }
-    fprintf(fp, "Variable Table:\n");
     for(int i = 0; i < table->count; i++){
         VarAttr* attr = &table->entries[i];
-        fprintf(fp, "Name: %s, Proc: %s, Kind: %d, Type: %d, Level: %d, Addr: %d\n",
+        fprintf(fp, "vname: %s, vproc: %s, vkind: %d, vtype: %d, vlev: %d, vaddr: %d\n",
                 attr->vname, attr->vproc, attr->vkind, attr->vtype, attr->vlev, attr->vaddr);
     }
     fclose(fp);
@@ -45,10 +44,9 @@ CORE_API void fprint_proc_table(const char* filename, ProcTable* table){
         perror("Error");
         return;
     }
-    fprintf(fp, "Procedure Table:\n");
-    for(int i = 0; i < MAX_TABLE_SIZE; i++){
+    for(int i = 0; i < table->count; i++){
         ProcAttr* attr = &table->entries[i];
-        fprintf(fp, "Name: %s, Type: %d, Level: %d, FAdr: %d, LAdr: %d\n",
+        fprintf(fp, "pname: %s, ptype: %d, plev: %d, faddr: %d, laddr: %d\n",
                 attr->pname, attr->ptype, attr->plev, attr->fadr, attr->ladr);
     }
     fclose(fp);

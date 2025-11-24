@@ -10,7 +10,7 @@
 void log_error(ErrorLogger*, ErrorInfo);
 // sym
 // delete is not nessesary for current grammar
-int lookup_var(VarTable* , const char* vname);
+int lookup_var(VarTable* , const char* vname, int lev);
 int insert_var(VarTable* ,  
     const char* vname, 
     const char* vproc, 
@@ -19,7 +19,7 @@ int insert_var(VarTable* ,
     int vlev
 );
 
-int lookup_proc(ProcTable* , const char* );
+int lookup_proc(ProcTable* , const char* name, int lev);
 int insert_proc(ProcTable* ,  
     const char* pname, 
     ProcType ptype, 

@@ -1,9 +1,9 @@
 #include"common.h"
 #include<string.h>
 
-int lookup_var(VarTable* var_table, const char* name) {
+int lookup_var(VarTable* var_table, const char* name, int lev) {
     for (size_t i = 0; i < var_table->count; ++i) {
-        if (strcmp(var_table->entries[i].vname, name) == 0) {
+        if (strcmp(var_table->entries[i].vname, name) == 0 && var_table->entries[i].vlev == lev) {
             return i; // Found, return index
         }
     }
@@ -23,7 +23,7 @@ int insert_var(VarTable* var_table,
     }
 
     // check for existing entry
-    if (lookup_var(var_table, vname) != -1) {
+    if (lookup_var(var_table, vname, vlev) != -1) {
         // Variable already exists, handle error as needed
         return -1;
     }
@@ -40,9 +40,9 @@ int insert_var(VarTable* var_table,
     return var_table->count -1;
 }
 
-int lookup_proc(ProcTable* proc_table, const char* name) {
+int lookup_proc(ProcTable* proc_table, const char* name, int lev) {
     for (size_t i = 0; i < proc_table->count; ++i) {
-        if (strcmp(proc_table->entries[i].pname, name) == 0) {
+        if (strcmp(proc_table->entries[i].pname, name) == 0 && proc_table->entries[i].plev == lev) {
             return i; // Found, return index
         }
     }
@@ -62,7 +62,7 @@ int insert_proc(ProcTable* proc_table,
     }
 
     // check for existing entry
-    if (lookup_proc(proc_table, pname) != -1) {
+    if (lookup_proc(proc_table, pname, plev) != -1) {
         // Procedure already exists, handle error as needed
         return -1;
     }
