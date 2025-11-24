@@ -11,7 +11,6 @@
 
 typedef enum {
     PARSE_STATUS_OK,
-    PARSE_STATUS_LOOKBACK,
     PARSE_STATUS_FAILED
 }ParseStatus;
 

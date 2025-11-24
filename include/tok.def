@@ -1,4 +1,5 @@
 /* tokens */
+    DEF(NULL_TOK, "")
     DEF(TOK_BEGIN, "begin")
     DEF(TOK_END, "end")
     DEF(TOK_INTEGER, "integer")

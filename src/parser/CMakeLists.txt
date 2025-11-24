@@ -1,6 +1,5 @@
 set(CORE_SOURCES
     ${CORE_SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/recursive-descent.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/common.c
     PARENT_SCOPE
 )

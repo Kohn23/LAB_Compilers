@@ -11,8 +11,7 @@
 #include "windll.h"
 
 typedef enum{
-    TOK_NULL
-#define DEF(macro, str) ,macro
+#define DEF(macro, str) macro,
 #include "tok.def"
 #undef DEF
 }TokenType;

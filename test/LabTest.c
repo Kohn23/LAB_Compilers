@@ -35,26 +35,41 @@ char* get_base_filename(const char *full_path) {
 }
 
 
-void test_lexer(){
-    ErrorLogger* error_logger = init_errorlogger();
-    TokenStream* token_stream = init_tokenstream();
-    lex_analyze(INPUTE_FILE2, token_stream, error_logger);
-
-    // Generate output files
-    char *base_filename = get_base_filename(INPUTE_FILE2);
+void test(){
+    char *base_filename = get_base_filename(INPUTE_FILE1);
     char dyd_filename[256];
     char err_filename[256];
+    char var_filename[256];
+    char proc_filename[256];
     snprintf(dyd_filename, sizeof(dyd_filename), "%s%s.dyd", OUTPUT_DIR, base_filename);
     snprintf(err_filename, sizeof(err_filename), "%s%s.err", OUTPUT_DIR, base_filename);
+    snprintf(var_filename, sizeof(var_filename), "%s%s.var", OUTPUT_DIR, base_filename);
+    snprintf(proc_filename, sizeof(proc_filename), "%s%s.proc", OUTPUT_DIR, base_filename);
+
+
+    ErrorLogger* error_logger = init_errorlogger();
+    TokenStream* token_stream = init_tokenstream();
+    VarTable* var_table = init_var_table();
+    ProcTable* proc_table = init_proc_table();
+
+    // lex
+    lex_analyze(INPUTE_FILE1, token_stream, error_logger);
+    // parse
+    recursive_descent_parse(token_stream, var_table, proc_table, error_logger);
+    
     // Print tokenstream to files
     fprint_tokenstream(dyd_filename, token_stream);
+    fprint_var_table(var_filename, var_table);
+    fprint_proc_table(proc_filename, proc_table);
     fprint_errors(err_filename, error_logger);
 
     free_errorlogger(error_logger);
     free_tokenstream(token_stream);
+    free_var_table(var_table);
+    free_proc_table(proc_table);
 }
 
 int main(){
-    test_lexer();
+    test();
     return 0;
 }

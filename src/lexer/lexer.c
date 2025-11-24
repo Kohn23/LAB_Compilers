@@ -32,7 +32,7 @@ static void free_lexer(Lexer *lexer) {
 static ErrorInfo lex_error_format(const char* message, size_t line, const char* spec) {
     // create error info
     static char error_info[MAX_LEN_ERROR_INFO];
-    snprintf(error_info, MAX_LEN_ERROR_INFO, "Line:%zu %s:'%s'", line, message, spec);
+    snprintf(error_info, MAX_LEN_ERROR_INFO, "Line:%zu %s'%s'", line, message, spec);
     return error_info;
 }
 
@@ -207,9 +207,9 @@ CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream,
             ungetc(ch, input_file);
             token_stream->tokens[token_stream->count].lexeme[len] = '\0';
             TokenType found_type = TOK_IDENTIFIER;
-            for (int i = 0; i < TOK_NULL; i++) {
+            for (int i = 1; i <= TOK_EOF; i++) {
                 if (strcmp(token_stream->tokens[token_stream->count].lexeme, keywords[i]) == 0) {
-                    found_type = (TokenType)(TOK_NULL + i + 1);
+                    found_type = (TokenType)i;
                     break;
                 }
             }

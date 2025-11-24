@@ -3,6 +3,8 @@ set(CORE_SOURCES "")
 add_subdirectory(error)
 add_subdirectory(tok)
 add_subdirectory(lexer)
+add_subdirectory(sym)
+add_subdirectory(parser)
 
 
 add_library(minicomp SHARED

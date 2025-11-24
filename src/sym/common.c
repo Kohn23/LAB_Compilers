@@ -1,5 +1,5 @@
 #include"common.h"
-
+#include<string.h>
 
 int lookup_var(VarTable* var_table, const char* name) {
     for (size_t i = 0; i < var_table->count; ++i) {
@@ -10,7 +10,7 @@ int lookup_var(VarTable* var_table, const char* name) {
     return -1; // Not found
 }
 
-void insert_var(VarTable* var_table,  
+int insert_var(VarTable* var_table,  
     const char* vname, 
     const char* vproc, 
     VarKind vkind, 
@@ -19,27 +19,29 @@ void insert_var(VarTable* var_table,
 ) {
     if (var_table->count >= MAX_TABLE_SIZE) {
         // Table full, handle error as needed
-        return;
+        return -1;
     }
 
     // check for existing entry
     if (lookup_var(var_table, vname) != -1) {
         // Variable already exists, handle error as needed
-        return;
+        return -1;
     }
 
     VarAttr* entry = &var_table->entries[var_table->count];
-    strncpy(entry->vattr.vname, vname, MAX_LEN_VAR_NAME);
-    strncpy(entry->vattr.vproc, vproc, MAX_LEN_PROC_NAME);
-    entry->vattr.vkind = vkind;
-    entry->vattr.vtype = vtype;
-    entry->vattr.vlev = vlev;
-    entry->vattr.vaddr = var_table->count;
+    strncpy(entry->vname, vname, MAX_LEN_VAR_NAME);
+    strncpy(entry->vproc, vproc, MAX_LEN_PROC_NAME);
+    entry->vkind = vkind;
+    entry->vtype = vtype;
+    entry->vlev = vlev;
+    entry->vaddr = var_table->count;
     var_table->count++;
+
+    return var_table->count -1;
 }
 
 int lookup_proc(ProcTable* proc_table, const char* name) {
-    for (size_t i = 0; i < proc_table->size; ++i) {
+    for (size_t i = 0; i < proc_table->count; ++i) {
         if (strcmp(proc_table->entries[i].pname, name) == 0) {
             return i; // Found, return index
         }
@@ -47,7 +49,7 @@ int lookup_proc(ProcTable* proc_table, const char* name) {
     return -1; // Not found
 }
 
-void insert_proc(ProcTable* proc_table,  
+int insert_proc(ProcTable* proc_table,  
     const char* pname, 
     ProcType ptype, 
     int plev, 
@@ -56,20 +58,22 @@ void insert_proc(ProcTable* proc_table,
 ) {
     if (proc_table->count >= MAX_TABLE_SIZE) {
         // Table full, handle error as needed
-        return;
+        return -1;
     }
 
     // check for existing entry
     if (lookup_proc(proc_table, pname) != -1) {
         // Procedure already exists, handle error as needed
-        return;
+        return -1;
     }
 
     ProcAttr* entry = &proc_table->entries[proc_table->count++];
-    strncpy(entry->attr.pname, pname, MAX_LEN_PROC_NAME);
-    entry->attr.ptype = ptype;
-    entry->attr.plev = plev;
-    entry->attr.fadr = fadr;
-    entry->attr.ladr = ladr;
+    strncpy(entry->pname, pname, MAX_LEN_PROC_NAME);
+    entry->ptype = ptype;
+    entry->plev = plev;
+    entry->fadr = fadr;
+    entry->ladr = ladr;
+
+    return proc_table->count - 1;
 }
 

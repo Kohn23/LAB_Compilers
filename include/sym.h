@@ -22,9 +22,9 @@ typedef enum{
     VAR_TYPE_INT
 }VarType;
 
-const char* var_type_to_str[] = {
-    "int"
-};
+// extern const char* var_type_to_str[] = {
+//     "int"
+// };
 
 typedef struct{
     char vname[MAX_LEN_VAR_NAME];
@@ -42,14 +42,12 @@ typedef struct {
 } VarTable;
 
 typedef enum {
-    PROC_TYPE_MAIN,     
-    PROC_TYPE_FUNCTION  
+    PROC_TYPE_INT
 } ProcType;
 
-const char* ptype_to_str[] = {
-    "main",
-    "function"
-};
+// extern const char* ptype_to_str[] = {
+//     "int"
+// };
 
 typedef struct{
     char pname[MAX_LEN_PROC_NAME];  
