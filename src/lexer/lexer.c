@@ -147,6 +147,7 @@ CORE_API void lex_analyze(const char *input_filename, TokenStream* token_stream,
                 token_stream->tokens[token_stream->count].type = TOK_OP_GT; 
                 strcpy(token_stream->tokens[token_stream->count].lexeme, ">");
             }
+            token_stream->count++;
             continue;
         }
 

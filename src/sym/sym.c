@@ -25,6 +25,9 @@ CORE_API void free_proc_table(ProcTable* table){
 }
 
 CORE_API void fprint_var_table(const char* filename, VarTable* table){
+    static const char* var_type_to_str[] = {
+        "int"
+    };
     FILE* fp = fopen(filename, "w");
     if(fp == NULL){
         perror("Error");
@@ -32,13 +35,18 @@ CORE_API void fprint_var_table(const char* filename, VarTable* table){
     }
     for(int i = 0; i < table->count; i++){
         VarAttr* attr = &table->entries[i];
-        fprintf(fp, "vname: %s, vproc: %s, vkind: %d, vtype: %d, vlev: %d, vaddr: %d\n",
-                attr->vname, attr->vproc, attr->vkind, attr->vtype, attr->vlev, attr->vaddr);
+        fprintf(fp, "vname: %s, vproc: %s, vkind: %d, vtype: %s, vlev: %d, vaddr: %d\n",
+                attr->vname, attr->vproc, attr->vkind, var_type_to_str[attr->vtype], attr->vlev, attr->vaddr);
     }
     fclose(fp);
 }
 
+
+
 CORE_API void fprint_proc_table(const char* filename, ProcTable* table){
+    static const char* ptype_to_str[] = {
+        "int"
+    };
     FILE* fp = fopen(filename, "w");
     if(fp == NULL){
         perror("Error");
@@ -46,8 +54,8 @@ CORE_API void fprint_proc_table(const char* filename, ProcTable* table){
     }
     for(int i = 0; i < table->count; i++){
         ProcAttr* attr = &table->entries[i];
-        fprintf(fp, "pname: %s, ptype: %d, plev: %d, faddr: %d, laddr: %d\n",
-                attr->pname, attr->ptype, attr->plev, attr->fadr, attr->ladr);
+        fprintf(fp, "pname: %s, ptype: %s, plev: %d, faddr: %d, laddr: %d\n",
+                attr->pname, ptype_to_str[attr->ptype], attr->plev, attr->fadr, attr->ladr);
     }
     fclose(fp);
 }

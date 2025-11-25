@@ -21,6 +21,7 @@ static Parser* init_parser(TokenStream* tokenstream, VarTable* vartab, ProcTable
     parser->token_index = 0;
     parser->current_line = 1;
     parser->current_level = 0;
+    parser->vartab_idx_stamp = 0;
     parser->current_proc[0] = '\0';
     parser->last_proc[0] = '\0';
     return parser;
@@ -34,7 +35,7 @@ static void free_parser(Parser* parser) {
 
 static ErrorInfo parse_error_format(size_t line, const char* spec1, const char* spec2) {
     static char buffer[MAX_LEN_ERROR_INFO];
-    snprintf(buffer, MAX_LEN_ERROR_INFO, "Line:%zu Expecting '%s' before '%s' ", line, spec1, spec2);
+    snprintf(buffer, MAX_LEN_ERROR_INFO, "Line:%zu Expecting '%s' before '%s'", line, spec1, spec2);
     return buffer;
 }
 
@@ -81,6 +82,20 @@ static void retreat_token(Parser* parser) {
     }
 }
 
+static ParseStatus panic_mode_recovery(Parser* parser, TokenType tokentype){
+    // debug
+    printf("recovery: ");
+    Token* token = peek_token(parser, 0);
+    while(token->type != tokentype){
+        token = advance_token(parser);
+        if(token->type == TOK_EOF){
+            break;
+        }
+    }
+    retreat_token(parser);
+    return PARSE_STATUS_OK;
+}
+
 // forward declarations
 static ParseStatus parse_program(Parser*);
 static ParseStatus parse_subprogram(Parser*);
@@ -118,6 +133,7 @@ static ParseStatus parse_program(Parser* parser) {
 static ParseStatus parse_subprogram(Parser* parser) {
     // debug
     printf("<分程序> ");
+
     Token* token = advance_token(parser);
     if (!token || token->type != TOK_BEGIN) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_BEGIN], token ? token->lexeme : "<eof>"));
@@ -136,11 +152,12 @@ static ParseStatus parse_subprogram(Parser* parser) {
         // debug
         printf("error 1");
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_SEMICOLON], token ? token->lexeme : "<eof>"));
-        return PARSE_STATUS_FAILED;
+        // return PARSE_STATUS_FAILED;
+        panic_mode_recovery(parser, peek_token(parser,0)->type);
     }
     
     if (parse_stmt_list(parser) == PARSE_STATUS_FAILED) {
-        return PARSE_STATUS_FAILED;
+        panic_mode_recovery(parser, TOK_END);
     }
     
     token = advance_token(parser);
@@ -194,11 +211,7 @@ static ParseStatus parse_decl(Parser* parser) {
         printf(" ret: %s ", parser->tokenstream->tokens[parser->token_index].lexeme);
         return PARSE_STATUS_FAILED;
     } else {
-        // try function first
         if (parse_decl_func(parser) == PARSE_STATUS_FAILED) {
-            // not a function -> treat as var declaration
-            // rewind: the function attempt may have consumed tokens; best-effort: set index back to after the integer
-            // For simplicity we assume parse_decl_func will retreat on failure; otherwise handle var here:
             return parse_decl_var(parser);
         }
         return PARSE_STATUS_OK;
@@ -225,7 +238,7 @@ static ParseStatus parse_decl_var(Parser* parser){
     return PARSE_STATUS_OK;
 }
 
-// <函数说明>→(integer) function <标识符>（<参数>）；<函数体>
+// <函数说明>→(integer) function <标识符>(<参数>);<函数体>
 static ParseStatus parse_decl_func(Parser* parser){
     // debug
     printf("<函数说明> ");
@@ -270,6 +283,7 @@ static ParseStatus parse_decl_func(Parser* parser){
     // parse function body
     // enter new proc scope
     parser->current_level++;
+    parser->vartab_idx_stamp = parser->vartab->count;
     strncpy(parser->last_proc, parser->current_proc, MAX_LEN_PROC_NAME);
     strncpy(parser->current_proc, ident->lexeme, MAX_LEN_PROC_NAME);
 
@@ -285,7 +299,7 @@ static ParseStatus parse_decl_func(Parser* parser){
     if (lookup_proc(parser->proctab, ident->lexeme, parser->current_level) >= 0) {
         log_error(parser->errlog, parse_error_format(parser->current_line, "new procedure", ident->lexeme));
     } else {
-        insert_proc(parser->proctab, ident->lexeme, PROC_TYPE_INT, parser->current_level, 0, 0);
+        insert_proc(parser->proctab, ident->lexeme, PROC_TYPE_INT, parser->current_level, parser->vartab_idx_stamp, parser->vartab->count - 1);
     }
 
     return PARSE_STATUS_OK;
@@ -354,7 +368,7 @@ static ParseStatus parse_stmt_list(Parser* parser) {
     return PARSE_STATUS_OK;
 }
 
-// <执行语句表递归>→ ；<执行语句><执行语句表递归>|ε
+// <执行语句表递归>→;<执行语句><执行语句表递归>|ε
 static ParseStatus parse_stmt_list_rec(Parser* parser) {
     // debug
     printf("<执行语句表递归> ");
@@ -383,25 +397,25 @@ static ParseStatus parse_stmt(Parser* parser) {
     } else if (t->type == TOK_IF) {
         return parse_condition(parser);
     } else if (t->type == TOK_IDENTIFIER) {
-        // could be assignment or call
+        // assignment or call
         advance_token(parser);
         Token* next = peek_token(parser, 0);
         if (!next) {
             log_error(parser->errlog, parse_error_format(parser->current_line, ":=", "<eof>"));
             return PARSE_STATUS_FAILED;
         }
-        if (strcmp(next->lexeme, ":=") == 0) {
+        if (next->type == TOK_OP_ASSIGN) {
             // assignment
             return parse_assignment(parser);
         } else if (next->type == TOK_PUNCT_LPAR) {
             // function call
             return parse_call(parser);
         } else {
-            log_error(parser->errlog, parse_error_format(parser->current_line, "statement", next->lexeme));
+            log_error(parser->errlog, parse_error_format(parser->current_line, "Complete Statements", next->lexeme));
             return PARSE_STATUS_FAILED;
         }
     } else {
-        log_error(parser->errlog, parse_error_format(parser->current_line, "statement", t->lexeme));
+        log_error(parser->errlog, parse_error_format(parser->current_line, "Statements", t->lexeme));
         return PARSE_STATUS_FAILED;
     }
 }
@@ -427,8 +441,10 @@ static ParseStatus parse_read(Parser* parser) {
         return PARSE_STATUS_FAILED;
     }
     if (lookup_var(parser->vartab, id->lexeme, parser->current_level) < 0) {
-        log_error(parser->errlog, parse_error_format(parser->current_line, "defined variable", id->lexeme));
-        return PARSE_STATUS_FAILED;
+        char spec2[MAX_LEN_ERROR_SPEC];
+        snprintf(spec2, MAX_LEN_ERROR_SPEC, "Variable %s is referenced", id->lexeme);
+        log_error(parser->errlog, parse_error_format(parser->current_line, "the Declaration", spec2));
+        return panic_mode_recovery(parser, TOK_PUNCT_SEMICOLON);
     }
     t = advance_token(parser);
     if (!t || t->type != TOK_PUNCT_RPAR) {
@@ -459,8 +475,10 @@ static ParseStatus parse_write(Parser* parser) {
         return PARSE_STATUS_FAILED;
     }
     if (lookup_var(parser->vartab, id->lexeme, parser->current_level) < 0) {
-        log_error(parser->errlog, parse_error_format(parser->current_line, "defined variable", id->lexeme));
-        return PARSE_STATUS_FAILED;
+        char spec2[MAX_LEN_ERROR_SPEC];
+        snprintf(spec2, MAX_LEN_ERROR_SPEC, "Variable %s is referenced", id->lexeme);
+        log_error(parser->errlog, parse_error_format(parser->current_line, "the Declaration", spec2));
+        return panic_mode_recovery(parser, TOK_PUNCT_SEMICOLON);
     }
     t = advance_token(parser);
     if (!t || t->type != TOK_PUNCT_RPAR) {
@@ -475,44 +493,26 @@ static ParseStatus parse_write(Parser* parser) {
 static ParseStatus parse_assignment(Parser* parser) {
     // debug
     printf("<赋值语句> ");
-    // current token is identifier (already consumed by caller)
-    retreat_token(parser);
-    Token* t = advance_token(parser); // this was identifier earlier
     Token* op = advance_token(parser);
-    if (!op || strcmp(op->lexeme, ":=") != 0) {
+    if (!op || op->type != TOK_OP_ASSIGN) {
         log_error(parser->errlog, parse_error_format(parser->current_line, ":=", op ? op->lexeme : "<eof>"));
         return PARSE_STATUS_FAILED;
     }
-    // if (lookup_var(parser->vartab, t->lexeme, parser->current_level) < 0) {
-    //     // debug
-    //     printf("fail in lookup");
-    //     log_error(parser->errlog, parse_error_format(parser->current_line, "defined variable", t->lexeme));
-    //     return PARSE_STATUS_FAILED;
-    // }
-    if (parse_expression(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
+    if (parse_expression(parser) == PARSE_STATUS_FAILED) return panic_mode_recovery(parser, TOK_PUNCT_SEMICOLON);
     return PARSE_STATUS_OK;
 }
 
-// <函数调用>→<标识符>(<参数>)
+// <函数调用>→<标识符>(<算术表达式>)
 static ParseStatus parse_call(Parser* parser) {
     // debug
     printf("<函数调用> ");
-    // identifier already consumed by caller
-    Token* func = peek_token(parser, 0);
-    Token* t = advance_token(parser); // identifier
-    t = advance_token(parser); // '('
+    Token* t = advance_token(parser); 
     if (!t || t->type != TOK_PUNCT_LPAR) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_LPAR], t ? t->lexeme : "<eof>"));
         return PARSE_STATUS_FAILED;
     }
-    // optional parameter list (only single variable allowed in grammar)
-    Token* next = peek_token(parser, 0);
-    if (next && next->type == TOK_IDENTIFIER) {
-        Token* id = advance_token(parser);
-        if (lookup_var(parser->vartab, id->lexeme, parser->current_level) < 0) {
-            log_error(parser->errlog, parse_error_format(parser->current_line, "defined variable", id->lexeme));
-            return PARSE_STATUS_FAILED;
-        }
+    if(parse_expression(parser) == PARSE_STATUS_FAILED){
+        return PARSE_STATUS_FAILED;
     }
     t = advance_token(parser);
     if (!t || t->type != TOK_PUNCT_RPAR) {
@@ -536,11 +536,11 @@ static ParseStatus parse_expression_rec(Parser* parser) {
     // debug
     printf("<算术表达式递归> ");
     Token* next = peek_token(parser, 0);
-    if (next && next->lexeme[0] == '-') {
+    if (next && next->type == TOK_OP_SUB) {
         advance_token(parser);
         if (parse_term(parser) == PARSE_STATUS_FAILED){
             retreat_token(parser);
-            return PARSE_STATUS_FAILED;
+            return PARSE_STATUS_OK;
         } 
         return parse_expression_rec(parser);
     }
@@ -561,11 +561,11 @@ static ParseStatus parse_term_rec(Parser* parser) {
     // debug
     printf("<项递归> ");
     Token* next = peek_token(parser, 0);
-    if (next && next->lexeme[0] == '*') {
+    if (next && next->type == TOK_OP_MUL) {
         advance_token(parser);
         if (parse_factor(parser) == PARSE_STATUS_FAILED){
             retreat_token(parser);
-            return PARSE_STATUS_FAILED;
+            return PARSE_STATUS_OK;
         } 
         return parse_term_rec(parser);
     }
@@ -577,24 +577,22 @@ static ParseStatus parse_term_rec(Parser* parser) {
 static ParseStatus parse_factor(Parser* parser) {
     // debug
     printf("<因子> ");
-    Token* t = peek_token(parser, 0);
+    Token* t = advance_token(parser);
     if (!t) return PARSE_STATUS_FAILED;
     if (t->type == TOK_IDENTIFIER) {
-        advance_token(parser);
         Token* next = peek_token(parser, 0);
         if (next && next->type == TOK_PUNCT_LPAR) {
-            // function call
             return parse_call(parser);
         } else {
-            // variable usage -> check defined
             if (lookup_var(parser->vartab, t->lexeme, parser->current_level) < 0) {
-                log_error(parser->errlog, parse_error_format(parser->current_line, "defined variable", t->lexeme));
+                char spec2[MAX_LEN_ERROR_SPEC];
+                snprintf(spec2, MAX_LEN_ERROR_SPEC, "Variable %s is referenced", t->lexeme);
+                log_error(parser->errlog, parse_error_format(parser->current_line, "the Declaration", spec2));
                 return PARSE_STATUS_FAILED;
             }
             return PARSE_STATUS_OK;
         }
     } else if (t->type == TOK_NUM_LITERAL) {
-        advance_token(parser);
         return PARSE_STATUS_OK;
     } else {
         log_error(parser->errlog, parse_error_format(parser->current_line, "factor", t->lexeme));
@@ -618,11 +616,15 @@ static ParseStatus parse_condition(Parser* parser) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_THEN], t ? t->lexeme : "<eof>"));
         return PARSE_STATUS_FAILED;
     }
-    if (parse_stmt(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
+    if (parse_stmt(parser) == PARSE_STATUS_FAILED) {
+        panic_mode_recovery(parser, TOK_ELSE);
+    }
     t = advance_token(parser);
     if (!t || t->type != TOK_ELSE) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_ELSE], t ? t->lexeme : "<eof>"));
-        return PARSE_STATUS_FAILED;
+        // panic_mode_recovery: not sufficient when else is missing
+        panic_mode_recovery(parser, TOK_IDENTIFIER);
+        advance_token(parser);
     }
     if (parse_stmt(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
     return PARSE_STATUS_OK;
@@ -648,7 +650,8 @@ CORE_API void recursive_descent_parse(TokenStream* tokenstream, VarTable* vartab
     Parser* parser = init_parser(tokenstream, vartab, proctab, errlog);
     if (!parser) return;
 
-    parse_program(parser);
+    if(parse_program(parser)==PARSE_STATUS_OK) printf("parse done");
+    else printf("parse failed");
 
     free_parser(parser);
 }

@@ -1,7 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#define MAX_LEN_ERROR_SPEC 32
+#define MAX_LEN_ERROR_SPEC 64
 #define MAX_LEN_ERROR_INFO 256
 #define MAX_ERRORS 128
 

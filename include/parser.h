@@ -23,6 +23,7 @@ typedef struct {
     size_t token_index;
     size_t current_line;
     size_t current_level;
+    size_t vartab_idx_stamp;
     char current_proc[MAX_LEN_PROC_NAME];
     char last_proc[MAX_LEN_PROC_NAME];
 }Parser;
