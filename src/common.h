@@ -11,6 +11,7 @@ void log_error(ErrorLogger*, ErrorInfo);
 // sym
 // delete is not nessesary for current grammar
 int lookup_var(VarTable* , const char* vname, int lev);
+int insert_param(VarTable* var_table, const char* vname, int lev);
 int insert_var(VarTable* ,  
     const char* vname, 
     const char* vproc, 

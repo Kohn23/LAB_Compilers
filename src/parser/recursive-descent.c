@@ -229,12 +229,13 @@ static ParseStatus parse_decl_var(Parser* parser){
         return PARSE_STATUS_FAILED;
     }
     // insert variable into var table
-    if (lookup_var(parser->vartab, token->lexeme, parser->current_level) >= 0) {
-        // duplicate -> log but continue
-        log_error(parser->errlog, parse_error_format(parser->current_line, "new variable", token->lexeme));
-    } else {
-        insert_var(parser->vartab, token->lexeme, parser->current_proc, VAR_KIND_NORMAL, VAR_TYPE_INT, parser->current_level);
-    }
+    // if (lookup_var(parser->vartab, token->lexeme, parser->current_level) >= 0) {
+    //     // duplicate -> log but continue
+    //     log_error(parser->errlog, parse_error_format(parser->current_line, "new variable", token->lexeme));
+    // } else {
+    //     insert_var(parser->vartab, token->lexeme, parser->current_proc, VAR_KIND_NORMAL, VAR_TYPE_INT, parser->current_level);
+    // }
+    insert_var(parser->vartab, token->lexeme, parser->current_proc, VAR_KIND_NORMAL, VAR_TYPE_INT, parser->current_level);
     return PARSE_STATUS_OK;
 }
 
@@ -260,10 +261,14 @@ static ParseStatus parse_decl_func(Parser* parser){
         return PARSE_STATUS_FAILED;
     }
 
-    // parse optional parameter
-    if (peek_token(parser, 0) && peek_token(parser, 0)->type == TOK_IDENTIFIER) {
-        // if (parse_param(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
-        advance_token(parser)->lexeme;
+    t = advance_token(parser);
+    if (!t || t->type != TOK_IDENTIFIER){
+        log_error(parser->errlog, parse_error_format(parser->current_line, "parameter", t ? t->lexeme : "<eof>"));
+    }
+    else{
+        // count variables from now
+        parser->vartab_idx_stamp = parser->vartab->count;
+        insert_param(parser->vartab, t->lexeme, parser->current_level);
     }
 
     t = advance_token(parser);
@@ -283,7 +288,6 @@ static ParseStatus parse_decl_func(Parser* parser){
     // parse function body
     // enter new proc scope
     parser->current_level++;
-    parser->vartab_idx_stamp = parser->vartab->count;
     strncpy(parser->last_proc, parser->current_proc, MAX_LEN_PROC_NAME);
     strncpy(parser->current_proc, ident->lexeme, MAX_LEN_PROC_NAME);
 
@@ -411,11 +415,11 @@ static ParseStatus parse_stmt(Parser* parser) {
             // function call
             return parse_call(parser);
         } else {
-            log_error(parser->errlog, parse_error_format(parser->current_line, "Complete Statements", next->lexeme));
+            log_error(parser->errlog, parse_error_format(parser->current_line, "<执行语句>", next->lexeme));
             return PARSE_STATUS_FAILED;
         }
     } else {
-        log_error(parser->errlog, parse_error_format(parser->current_line, "Statements", t->lexeme));
+        log_error(parser->errlog, parse_error_format(parser->current_line, "<执行语句>", t->lexeme));
         return PARSE_STATUS_FAILED;
     }
 }
@@ -442,8 +446,8 @@ static ParseStatus parse_read(Parser* parser) {
     }
     if (lookup_var(parser->vartab, id->lexeme, parser->current_level) < 0) {
         char spec2[MAX_LEN_ERROR_SPEC];
-        snprintf(spec2, MAX_LEN_ERROR_SPEC, "Variable %s is referenced", id->lexeme);
-        log_error(parser->errlog, parse_error_format(parser->current_line, "the Declaration", spec2));
+        snprintf(spec2, MAX_LEN_ERROR_SPEC, "变量 %s 被引用", id->lexeme);
+        log_error(parser->errlog, parse_error_format(parser->current_line, "<变量说明>", spec2));
         return panic_mode_recovery(parser, TOK_PUNCT_SEMICOLON);
     }
     t = advance_token(parser);
@@ -476,8 +480,8 @@ static ParseStatus parse_write(Parser* parser) {
     }
     if (lookup_var(parser->vartab, id->lexeme, parser->current_level) < 0) {
         char spec2[MAX_LEN_ERROR_SPEC];
-        snprintf(spec2, MAX_LEN_ERROR_SPEC, "Variable %s is referenced", id->lexeme);
-        log_error(parser->errlog, parse_error_format(parser->current_line, "the Declaration", spec2));
+        snprintf(spec2, MAX_LEN_ERROR_SPEC, "变量 %s 被引用", id->lexeme);
+        log_error(parser->errlog, parse_error_format(parser->current_line, "<变量说明>", spec2));
         return panic_mode_recovery(parser, TOK_PUNCT_SEMICOLON);
     }
     t = advance_token(parser);
@@ -586,8 +590,8 @@ static ParseStatus parse_factor(Parser* parser) {
         } else {
             if (lookup_var(parser->vartab, t->lexeme, parser->current_level) < 0) {
                 char spec2[MAX_LEN_ERROR_SPEC];
-                snprintf(spec2, MAX_LEN_ERROR_SPEC, "Variable %s is referenced", t->lexeme);
-                log_error(parser->errlog, parse_error_format(parser->current_line, "the Declaration", spec2));
+                snprintf(spec2, MAX_LEN_ERROR_SPEC, "变量 %s 被引用", t->lexeme);
+                log_error(parser->errlog, parse_error_format(parser->current_line, "<变量说明>", spec2));
                 return PARSE_STATUS_FAILED;
             }
             return PARSE_STATUS_OK;
