@@ -49,8 +49,8 @@ static Token* advance_token(Parser* parser) {
         Token* t = &parser->tokenstream->tokens[parser->token_index];
         parser->token_index++;
 
-        // debug
-        printf("%s", t->lexeme);
+        // // debug
+        // printf("%s", t->lexeme);
         
         return t;
     }
@@ -83,8 +83,8 @@ static void retreat_token(Parser* parser) {
 }
 
 static ParseStatus panic_mode_recovery(Parser* parser, TokenType tokentype){
-    // debug
-    printf("recovery: ");
+    // // debug
+    // printf("recovery: ");
     Token* token = peek_token(parser, 0);
     while(token->type != tokentype){
         token = advance_token(parser);
@@ -124,15 +124,15 @@ static ParseStatus parse_condition_expr(Parser*);
 
 // <程序>→<分程序>
 static ParseStatus parse_program(Parser* parser) {
-    // debug
-    printf("<程序> ");
+    // // debug
+    // printf("<程序> ");
     return parse_subprogram(parser);
 }
 
 // <分程序>→begin <说明语句表>;<执行语句表> end
 static ParseStatus parse_subprogram(Parser* parser) {
-    // debug
-    printf("<分程序> ");
+    // // debug
+    // printf("<分程序> ");
 
     Token* token = advance_token(parser);
     if (!token || token->type != TOK_BEGIN) {
@@ -149,8 +149,8 @@ static ParseStatus parse_subprogram(Parser* parser) {
     
     token = advance_token(parser);
     if (!token || token->type != TOK_PUNCT_SEMICOLON) {
-        // debug
-        printf("error 1");
+        // // debug
+        // printf("error 1");
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_SEMICOLON], token ? token->lexeme : "<eof>"));
         // return PARSE_STATUS_FAILED;
         panic_mode_recovery(parser, peek_token(parser,0)->type);
@@ -162,7 +162,17 @@ static ParseStatus parse_subprogram(Parser* parser) {
     
     token = advance_token(parser);
     if (!token || token->type != TOK_END) {
-        log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_END], token ? token->lexeme : "<eof>"));
+        if(token->type == TOK_EOF){
+            char spec2[MAX_LEN_ERROR_SPEC];
+            retreat_token(parser); //EOF
+            retreat_token(parser); //LAST
+            Token* last_tok = peek_token(parser, 0);
+            snprintf(spec2, MAX_LEN_ERROR_SPEC, "%s', found '%s' instead", token->lexeme, last_tok->lexeme);
+            log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_END], spec2));
+        }
+        else{
+            log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_END], token ? token->lexeme : "<eof>"));
+        }
         return PARSE_STATUS_FAILED;
     }
     
@@ -174,8 +184,8 @@ static ParseStatus parse_subprogram(Parser* parser) {
 
 // <说明语句表>→<说明语句><说明语句表递归>
 static ParseStatus parse_decl_list(Parser* parser) {
-    // debug
-    printf("<说明语句表> ");
+    // // debug
+    // printf("<说明语句表> ");
     if (parse_decl(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
     if (parse_decl_list_rec(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED; // Not possible
     return PARSE_STATUS_OK;
@@ -183,16 +193,16 @@ static ParseStatus parse_decl_list(Parser* parser) {
 
 // <说明语句表递归>→;<说明语句><说明语句表递归>|ε
 static ParseStatus parse_decl_list_rec(Parser* parser) {
-    // debug
-    printf("<说明语句表递归> ");
+    // // debug
+    // printf("<说明语句表递归> ");
     Token* token = advance_token(parser);
     if (token->type != TOK_PUNCT_SEMICOLON) {
         retreat_token(parser);
     } else {
         if (parse_decl(parser) == PARSE_STATUS_FAILED) {
             retreat_token(parser);
-            // debug
-            printf(" catch ret: %s ", parser->tokenstream->tokens[parser->token_index].lexeme);
+            // // debug
+            // printf(" catch ret: %s ", parser->tokenstream->tokens[parser->token_index].lexeme);
             return PARSE_STATUS_OK;
         }
         parse_decl_list_rec(parser);
@@ -203,12 +213,12 @@ static ParseStatus parse_decl_list_rec(Parser* parser) {
 // <说明语句>→<变量说明>│<函数说明>
 static ParseStatus parse_decl(Parser* parser) {
     // debug
-    printf("<说明语句> ");
+    // printf("<说明语句> ");
     Token* token = advance_token(parser);
     if (!token || token->type != TOK_INTEGER) {
         retreat_token(parser);
         // debug
-        printf(" ret: %s ", parser->tokenstream->tokens[parser->token_index].lexeme);
+        // printf(" ret: %s ", parser->tokenstream->tokens[parser->token_index].lexeme);
         return PARSE_STATUS_FAILED;
     } else {
         if (parse_decl_func(parser) == PARSE_STATUS_FAILED) {
@@ -222,7 +232,7 @@ static ParseStatus parse_decl(Parser* parser) {
 // <变量>→<标识符>
 static ParseStatus parse_decl_var(Parser* parser){
     // debug
-    printf("<变量说明> ");
+    // printf("<变量说明> ");
     Token* token = advance_token(parser);
     if (!token || token->type != TOK_IDENTIFIER) {
         log_error(parser->errlog, parse_error_format(parser->current_line, "identifier", token ? token->lexeme : "<eof>"));
@@ -242,7 +252,7 @@ static ParseStatus parse_decl_var(Parser* parser){
 // <函数说明>→(integer) function <标识符>(<参数>);<函数体>
 static ParseStatus parse_decl_func(Parser* parser){
     // debug
-    printf("<函数说明> ");
+    // printf("<函数说明> ");
     Token* token = advance_token(parser);
     if (!token || token->type != TOK_FUNCTION) {
         retreat_token(parser);
@@ -280,7 +290,7 @@ static ParseStatus parse_decl_func(Parser* parser){
     t = advance_token(parser);
     if (!t || t->type != TOK_PUNCT_SEMICOLON) {
         // debug
-        printf("error 2");
+        // printf("error 2");
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_SEMICOLON], t ? t->lexeme : "<eof>"));
         return PARSE_STATUS_FAILED;
     }
@@ -312,7 +322,7 @@ static ParseStatus parse_decl_func(Parser* parser){
 // <函数体>→begin <说明语句表>；<执行语句表> end
 static ParseStatus parse_func_block(Parser* parser){
     // debug
-    printf("<函数体> ");
+    // printf("<函数体> ");
     Token* token = advance_token(parser);
     if (!token || token->type != TOK_BEGIN) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_BEGIN], token ? token->lexeme : "<eof>"));
@@ -326,7 +336,7 @@ static ParseStatus parse_func_block(Parser* parser){
     token = advance_token(parser);
     if (!token || token->type != TOK_PUNCT_SEMICOLON) {
         // debug
-        printf("error 3");
+        // printf("error 3");
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_SEMICOLON], token ? token->lexeme : "<eof>"));
         return PARSE_STATUS_FAILED;
     }
@@ -348,7 +358,7 @@ static ParseStatus parse_func_block(Parser* parser){
 // <变量>→<标识符>
 static ParseStatus parse_param(Parser* parser){
     // debug
-    printf("<参数> ");
+    // printf("<参数> ");
     Token* t = advance_token(parser);
     if (!t || t->type != TOK_IDENTIFIER) {
         log_error(parser->errlog, parse_error_format(parser->current_line, "parameter", t ? t->lexeme : "<eof>"));
@@ -366,7 +376,7 @@ static ParseStatus parse_param(Parser* parser){
 // <执行语句表>→<执行语句><执行语句表递归>
 static ParseStatus parse_stmt_list(Parser* parser) {
     // debug
-    printf("<执行语句表> ");
+    // printf("<执行语句表> ");
     if (parse_stmt(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
     if (parse_stmt_list_rec(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
     return PARSE_STATUS_OK;
@@ -375,7 +385,7 @@ static ParseStatus parse_stmt_list(Parser* parser) {
 // <执行语句表递归>→;<执行语句><执行语句表递归>|ε
 static ParseStatus parse_stmt_list_rec(Parser* parser) {
     // debug
-    printf("<执行语句表递归> ");
+    // printf("<执行语句表递归> ");
     Token* t = advance_token(parser);
     if (!t) return PARSE_STATUS_OK;
     if (t->type != TOK_PUNCT_SEMICOLON) {
@@ -390,7 +400,7 @@ static ParseStatus parse_stmt_list_rec(Parser* parser) {
 // <执行语句>→<读语句>│<写语句>│<赋值语句>│<条件语句>
 static ParseStatus parse_stmt(Parser* parser) {
     // debug
-    printf("<执行语句> ");
+    // printf("<执行语句> ");
     Token* t = peek_token(parser, 0);
     if (!t) return PARSE_STATUS_FAILED;
 
@@ -428,7 +438,7 @@ static ParseStatus parse_stmt(Parser* parser) {
 // <读语句>→read(<变量>)
 static ParseStatus parse_read(Parser* parser) {
     // debug
-    printf("<读语句> ");
+    // printf("<读语句> ");
     Token* t = advance_token(parser);
     if (!t || t->type != TOK_READ) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_READ], t ? t->lexeme : "<eof>"));
@@ -462,7 +472,7 @@ static ParseStatus parse_read(Parser* parser) {
 // <写语句>→write(<变量>)
 static ParseStatus parse_write(Parser* parser) {
     // debug
-    printf("<写语句> ");
+    // printf("<写语句> ");
     Token* t = advance_token(parser);
     if (!t || t->type != TOK_WRITE) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_WRITE], t ? t->lexeme : "<eof>"));
@@ -496,7 +506,7 @@ static ParseStatus parse_write(Parser* parser) {
 // <赋值语句>→<变量>:=<算术表达式>
 static ParseStatus parse_assignment(Parser* parser) {
     // debug
-    printf("<赋值语句> ");
+    // printf("<赋值语句> ");
     Token* op = advance_token(parser);
     if (!op || op->type != TOK_OP_ASSIGN) {
         log_error(parser->errlog, parse_error_format(parser->current_line, ":=", op ? op->lexeme : "<eof>"));
@@ -509,7 +519,7 @@ static ParseStatus parse_assignment(Parser* parser) {
 // <函数调用>→<标识符>(<算术表达式>)
 static ParseStatus parse_call(Parser* parser) {
     // debug
-    printf("<函数调用> ");
+    // printf("<函数调用> ");
     Token* t = advance_token(parser); 
     if (!t || t->type != TOK_PUNCT_LPAR) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_LPAR], t ? t->lexeme : "<eof>"));
@@ -529,7 +539,7 @@ static ParseStatus parse_call(Parser* parser) {
 // <算术表达式>→<项><算术表达式递归>
 static ParseStatus parse_expression(Parser* parser) {
     // debug
-    printf("<算术表达式> ");
+    // printf("<算术表达式> ");
     if (parse_term(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
     return parse_expression_rec(parser);
 }
@@ -538,7 +548,7 @@ static ParseStatus parse_expression(Parser* parser) {
 // <算术表达式递归>→-<项><算术表达式递归>│ε
 static ParseStatus parse_expression_rec(Parser* parser) {
     // debug
-    printf("<算术表达式递归> ");
+    // printf("<算术表达式递归> ");
     Token* next = peek_token(parser, 0);
     if (next && next->type == TOK_OP_SUB) {
         advance_token(parser);
@@ -555,7 +565,7 @@ static ParseStatus parse_expression_rec(Parser* parser) {
 // <项>→<因子><项递归>
 static ParseStatus parse_term(Parser* parser) {
     // debug
-    printf("<项> ");
+    // printf("<项> ");
     if (parse_factor(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
     return parse_term_rec(parser);
 }
@@ -563,7 +573,7 @@ static ParseStatus parse_term(Parser* parser) {
 // <项递归>→*<因子><项递归>│ε
 static ParseStatus parse_term_rec(Parser* parser) {
     // debug
-    printf("<项递归> ");
+    // printf("<项递归> ");
     Token* next = peek_token(parser, 0);
     if (next && next->type == TOK_OP_MUL) {
         advance_token(parser);
@@ -580,7 +590,7 @@ static ParseStatus parse_term_rec(Parser* parser) {
 // <因子>→<变量>│<常数>│<函数调用>
 static ParseStatus parse_factor(Parser* parser) {
     // debug
-    printf("<因子> ");
+    // printf("<因子> ");
     Token* t = advance_token(parser);
     if (!t) return PARSE_STATUS_FAILED;
     if (t->type == TOK_IDENTIFIER) {
@@ -608,7 +618,7 @@ static ParseStatus parse_factor(Parser* parser) {
 // <条件语句>→if<条件表达式>then<执行语句>else <执行语句>
 static ParseStatus parse_condition(Parser* parser) {
     // debug
-    printf("<条件语句> ");
+    // printf("<条件语句> ");
     Token* t = advance_token(parser);
     if (!t || t->type != TOK_IF) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_IF], t ? t->lexeme : "<eof>"));
@@ -638,7 +648,7 @@ static ParseStatus parse_condition(Parser* parser) {
 // <条件表达式>→<算术表达式><关系运算符><算术表达式>
 static ParseStatus parse_condition_expr(Parser* parser) {
     // debug
-    printf("<条件表达式> ");
+    // printf("<条件表达式> ");
     if (parse_expression(parser) == PARSE_STATUS_FAILED) return PARSE_STATUS_FAILED;
     Token* op = advance_token(parser);
     if (!op) {
