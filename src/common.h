@@ -1,6 +1,21 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
+
+/*Common data structure*/
+#define MAX_LEN_STACK 32
+
+typedef struct Stack Stack;
+
+Stack* init_stack();
+bool stack_empty(Stack* );
+bool stack_full(Stack* );
+void stack_push(Stack* , size_t value);
+size_t stack_pop(Stack* );
+
 #include "error.h"
 #include "tok.h"
 #include "sym.h"
@@ -25,8 +40,8 @@ int insert_proc(ProcTable* ,
     const char* pname, 
     ProcType ptype, 
     int plev, 
-    int fadr, 
-    int ladr
+    size_t fadr, 
+    size_t ladr
 );
 
 #endif // COMMON_H

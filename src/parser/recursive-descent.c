@@ -8,6 +8,25 @@ static const char* keywords[] = {
 #undef DEF
 };
 
+typedef enum {
+    PARSE_STATUS_OK,
+    PARSE_STATUS_FAILED
+}ParseStatus;
+
+typedef struct {
+    TokenStream* tokenstream;
+    VarTable* vartab;
+    ProcTable* proctab;
+    ErrorLogger* errlog;
+
+    size_t token_index;
+    size_t current_line;
+    size_t current_level;
+    Stack* vartab_idx_stamp;
+    char current_proc[MAX_LEN_PROC_NAME];
+    char last_proc[MAX_LEN_PROC_NAME];
+}Parser;
+
 static Parser* init_parser(TokenStream* tokenstream, VarTable* vartab, ProcTable* proctab, ErrorLogger* errlog) {
     Parser* parser = (Parser*)malloc(sizeof(Parser));
     if (!parser) {
@@ -21,9 +40,10 @@ static Parser* init_parser(TokenStream* tokenstream, VarTable* vartab, ProcTable
     parser->token_index = 0;
     parser->current_line = 1;
     parser->current_level = 0;
-    parser->vartab_idx_stamp = 0;
+    parser->vartab_idx_stamp = init_stack();
     parser->current_proc[0] = '\0';
     parser->last_proc[0] = '\0';
+
     return parser;
 }
 
@@ -124,14 +144,14 @@ static ParseStatus parse_condition_expr(Parser*);
 
 // <程序>→<分程序>
 static ParseStatus parse_program(Parser* parser) {
-    // // debug
+    // debug
     // printf("<程序> ");
     return parse_subprogram(parser);
 }
 
 // <分程序>→begin <说明语句表>;<执行语句表> end
 static ParseStatus parse_subprogram(Parser* parser) {
-    // // debug
+    // debug
     // printf("<分程序> ");
 
     Token* token = advance_token(parser);
@@ -142,6 +162,8 @@ static ParseStatus parse_subprogram(Parser* parser) {
     
     parser->current_level++;
     strncpy(parser->current_proc, "main", MAX_LEN_PROC_NAME);
+    stack_push(parser->vartab_idx_stamp, parser->vartab->count);
+
     
     if (parse_decl_list(parser) == PARSE_STATUS_FAILED) {
         return PARSE_STATUS_FAILED;
@@ -177,7 +199,13 @@ static ParseStatus parse_subprogram(Parser* parser) {
     }
     
     parser->current_level--;
+
+    // this could cause a glitch if no variable ever exists in the program since (size_t)0 - 1 will underflow
+    insert_proc(parser->proctab, parser->current_proc, PROC_TYPE_VOID, parser->current_level, stack_pop(parser->vartab_idx_stamp), parser->vartab->count - 1);
+    
     parser->current_proc[0] = '\0';
+
+    
     
     return PARSE_STATUS_OK;
 }
@@ -277,7 +305,7 @@ static ParseStatus parse_decl_func(Parser* parser){
     }
     else{
         // count variables from now
-        parser->vartab_idx_stamp = parser->vartab->count;
+        stack_push(parser->vartab_idx_stamp, parser->vartab->count);
         insert_param(parser->vartab, t->lexeme, parser->current_level);
     }
 
@@ -313,7 +341,7 @@ static ParseStatus parse_decl_func(Parser* parser){
     if (lookup_proc(parser->proctab, ident->lexeme, parser->current_level) >= 0) {
         log_error(parser->errlog, parse_error_format(parser->current_line, "new procedure", ident->lexeme));
     } else {
-        insert_proc(parser->proctab, ident->lexeme, PROC_TYPE_INT, parser->current_level, parser->vartab_idx_stamp, parser->vartab->count - 1);
+        insert_proc(parser->proctab, ident->lexeme, PROC_TYPE_INT, parser->current_level, stack_pop(parser->vartab_idx_stamp), parser->vartab->count - 1);
     }
 
     return PARSE_STATUS_OK;

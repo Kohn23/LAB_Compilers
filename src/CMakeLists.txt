@@ -1,11 +1,10 @@
-set(CORE_SOURCES "")
+set(CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/common.c)
 
 add_subdirectory(error)
 add_subdirectory(tok)
 add_subdirectory(lexer)
 add_subdirectory(sym)
 add_subdirectory(parser)
-
 
 add_library(minicomp SHARED
     ${CORE_SOURCES}

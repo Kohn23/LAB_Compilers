@@ -45,6 +45,7 @@ CORE_API void fprint_var_table(const char* filename, VarTable* table){
 
 CORE_API void fprint_proc_table(const char* filename, ProcTable* table){
     static const char* ptype_to_str[] = {
+        "void",
         "int"
     };
     FILE* fp = fopen(filename, "w");

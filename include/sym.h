@@ -34,10 +34,11 @@ typedef struct{
 // linear probing
 typedef struct {
     VarAttr entries[MAX_TABLE_SIZE];  
-    int count;                         
+    size_t count;                         
 } VarTable;
 
 typedef enum {
+    PROC_TYPE_VOID,
     PROC_TYPE_INT
 } ProcType;
 
@@ -45,13 +46,13 @@ typedef struct{
     char pname[MAX_LEN_PROC_NAME];  
     ProcType ptype;                 
     int plev;                       
-    int fadr;                       
-    int ladr;                       
+    size_t fadr;                       
+    size_t ladr;                       
 } ProcAttr;
 
 typedef struct {
     ProcAttr entries[MAX_TABLE_SIZE];  
-    int count;
+    size_t count;
 } ProcTable;
 
 CORE_API VarTable* init_var_table();
