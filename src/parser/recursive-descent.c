@@ -102,6 +102,22 @@ static void retreat_token(Parser* parser) {
     }
 }
 
+static int scan_vartab_fadr(VarTable* vartab, size_t current_level){
+    for(int idx = 0; idx < vartab->count; ++idx)
+    {
+        if(vartab->entries[idx].vlev == current_level) return idx;
+    }
+    return -1;
+}
+
+static int scan_vartab_ladr(VarTable* vartab, size_t current_level){
+    int pos = -1;
+    for(size_t idx = 0; idx < vartab->count; ++idx){
+        if(vartab->entries[idx].vlev == current_level) pos=(int)idx;
+    }
+    return pos;
+}
+
 static ParseStatus panic_mode_recovery(Parser* parser, TokenType tokentype){
     // // debug
     // printf("recovery: ");
@@ -162,7 +178,7 @@ static ParseStatus parse_subprogram(Parser* parser) {
     
     parser->current_level++;
     strncpy(parser->current_proc, "main", MAX_LEN_PROC_NAME);
-    stack_push(parser->vartab_idx_stamp, parser->vartab->count);
+    // stack_push(parser->vartab_idx_stamp, parser->vartab->count);
 
     
     if (parse_decl_list(parser) == PARSE_STATUS_FAILED) {
@@ -198,15 +214,11 @@ static ParseStatus parse_subprogram(Parser* parser) {
         return PARSE_STATUS_FAILED;
     }
     
-    parser->current_level--;
-
-    // this could cause a glitch if no variable ever exists in the program since (size_t)0 - 1 will underflow
-    insert_proc(parser->proctab, parser->current_proc, PROC_TYPE_VOID, parser->current_level, stack_pop(parser->vartab_idx_stamp), parser->vartab->count - 1);
+    insert_proc(parser->proctab, parser->current_proc, PROC_TYPE_VOID, parser->current_level-1, scan_vartab_fadr(parser->vartab, parser->current_level), scan_vartab_fadr(parser->vartab, parser->current_level));
     
+    parser->current_level--;
     parser->current_proc[0] = '\0';
 
-    
-    
     return PARSE_STATUS_OK;
 }
 
@@ -293,6 +305,11 @@ static ParseStatus parse_decl_func(Parser* parser){
         return PARSE_STATUS_FAILED;
     }
 
+    if (lookup_proc(parser->proctab, ident->lexeme, parser->current_level - 1) >= 0) {
+        log_error(parser->errlog, parse_error_format(parser->current_line, "new procedure", ident->lexeme));
+        return panic_mode_recovery(parser, TOK_PUNCT_SEMICOLON);
+    } 
+
     Token* t = advance_token(parser);
     if (!t || t->type != TOK_PUNCT_LPAR) {
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_LPAR], t ? t->lexeme : "<eof>"));
@@ -305,7 +322,7 @@ static ParseStatus parse_decl_func(Parser* parser){
     }
     else{
         // count variables from now
-        stack_push(parser->vartab_idx_stamp, parser->vartab->count);
+        // stack_push(parser->vartab_idx_stamp, parser->vartab->count);
         insert_param(parser->vartab, t->lexeme, parser->current_level);
     }
 
@@ -322,7 +339,7 @@ static ParseStatus parse_decl_func(Parser* parser){
         log_error(parser->errlog, parse_error_format(parser->current_line, keywords[TOK_PUNCT_SEMICOLON], t ? t->lexeme : "<eof>"));
         return PARSE_STATUS_FAILED;
     }
-
+    
     // parse function body
     // enter new proc scope
     parser->current_level++;
@@ -333,16 +350,12 @@ static ParseStatus parse_decl_func(Parser* parser){
         return PARSE_STATUS_FAILED;
     }
 
+
+    insert_proc(parser->proctab, ident->lexeme, PROC_TYPE_INT, parser->current_level - 1, scan_vartab_fadr(parser->vartab, parser->current_level), scan_vartab_fadr(parser->vartab, parser->current_level));
+
     // leave proc scope
     parser->current_level--;
     strncpy(parser->current_proc, parser->last_proc, MAX_LEN_PROC_NAME);
-
-    // insert proc
-    if (lookup_proc(parser->proctab, ident->lexeme, parser->current_level) >= 0) {
-        log_error(parser->errlog, parse_error_format(parser->current_line, "new procedure", ident->lexeme));
-    } else {
-        insert_proc(parser->proctab, ident->lexeme, PROC_TYPE_INT, parser->current_level, stack_pop(parser->vartab_idx_stamp), parser->vartab->count - 1);
-    }
 
     return PARSE_STATUS_OK;
 }

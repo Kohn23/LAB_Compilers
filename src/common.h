@@ -6,6 +6,8 @@
 #include <stdbool.h>
 
 /*Common data structure*/
+
+// Stack was a nice try but not stupid actually
 #define MAX_LEN_STACK 32
 
 typedef struct Stack Stack;
@@ -40,8 +42,8 @@ int insert_proc(ProcTable* ,
     const char* pname, 
     ProcType ptype, 
     int plev, 
-    size_t fadr, 
-    size_t ladr
+    int fadr, 
+    int ladr
 );
 
 #endif // COMMON_H

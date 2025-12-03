@@ -36,7 +36,7 @@ char* get_base_filename(const char *full_path) {
 
 
 void test(){
-    char *base_filename = get_base_filename(INPUTE_FILE2);
+    char *base_filename = get_base_filename(INPUTE_FILE1);
     char dyd_filename[256];
     char err_filename[256];
     char var_filename[256];
@@ -53,7 +53,7 @@ void test(){
     ProcTable* proc_table = init_proc_table();
 
     // lex
-    lex_analyze(INPUTE_FILE2, token_stream, error_logger);
+    lex_analyze(INPUTE_FILE1, token_stream, error_logger);
     // parse
     recursive_descent_parse(token_stream, var_table, proc_table, error_logger);
     

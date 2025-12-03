@@ -89,8 +89,8 @@ int insert_proc(ProcTable* proc_table,
     const char* pname, 
     ProcType ptype, 
     int plev, 
-    size_t fadr, 
-    size_t ladr
+    int fadr, 
+    int ladr
 ) {
     if (proc_table->count >= MAX_TABLE_SIZE) {
         // Table full, handle error as needed

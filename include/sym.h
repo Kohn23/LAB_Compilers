@@ -46,8 +46,8 @@ typedef struct{
     char pname[MAX_LEN_PROC_NAME];  
     ProcType ptype;                 
     int plev;                       
-    size_t fadr;                       
-    size_t ladr;                       
+    int fadr;                       
+    int ladr;                       
 } ProcAttr;
 
 typedef struct {
