@@ -1,0 +1,3 @@
+[submodule "uestc_lab"]
+	path = uestc_lab
+	url = https://github.com/Kohn23/uestc_compiler.git
